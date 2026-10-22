@@ -1,7 +1,8 @@
 Arbeitspakete 23.10.2026
 
-- [ ] Alle: Besprechen wie weiter
+- [X] Alle: Besprechen wie weiter
 - [ ] Alle: Repository erstellen (projekte initialisieren)
-- [ ] Neo: Start erste testnode (?)
-- [ ] Vincent & Timo: Aufsetzen frontend
-- [ ] Alex: Aufsetzen Router
+- [ ] Neo + Alex: Konkret protokoll für Tickets besprechen
+- [ ] Neo: Start erste node zum testen von Protokoll
+- [ ] Vincent & Timo: Aufsetzen frontend (svelte)
+- [ ] Alex: Aufsetzen Router (Projekt)
