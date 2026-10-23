@@ -4,7 +4,7 @@
 **Participants:** Neow, Alex Alternator, Vincent Le Vries, Temu
 **Source:** Team chat log (`wplace husichat`), 07:21 to 09:43
 Summary created by Claude, from the original whatsapp chat log
-Note: ALex doesnt like the riederregel
+Note: Alex doesnt like the riederregel when Dezentral (<- note by alex)
 
 ---
 
