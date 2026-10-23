@@ -8,7 +8,9 @@ Node -- register --> Router
 
 
 register:
+
 POST [router-ip]:2048
+
 ´´´json
 {
   "name" : "my-node-12"
