@@ -10,14 +10,14 @@ class TaskStatus(str, Enum):
     IN_PROGRESS = "in progress"
     ERROR = "error"
 
-class Task(BaseModel):
+class TaskModel(BaseModel):
     id: str
     node_id: str
-    ticket: Ticket
+    ticket: TicketModel
     status: TaskStatus
-    report: None | Report
+    report: None | ReportModel
 
-class Report(BaseModel):
+class ReportModel(BaseModel):
     finished_at: datetime = Field(default_factory=datetime.now)
     finished_by_node_id: str
 
@@ -29,7 +29,7 @@ class Report(BaseModel):
 
     description: str
 
-class Ticket(BaseModel):
+class TicketModel(BaseModel):
     created_at: datetime = Field(default_factory=datetime.now)
     created_by_github_user_id: str
 
