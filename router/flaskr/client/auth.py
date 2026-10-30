@@ -2,8 +2,13 @@ import functools
 import os
 
 from flask import (
-    Blueprint, flash, g, redirect, render_template, request, session, url_for
+    Blueprint, flash, g, jsonify, redirect, render_template, request, session, url_for
 )
+from pydantic import ValidationError
+
+
+from models.githubAuth import (GitHubCallbackQuery, GitHubTokenResponse)
+from models.clientAuth import (AuthResponse)
 
 bp = Blueprint('auth', __name__, url_prefix='/auth')
 
@@ -24,3 +29,25 @@ def login_with_github():
     )
 
     return redirect(github_login_url)
+
+
+
+@bp.route("/github/callback", methods=["GET"])
+def github_callback():
+    try:
+        # 1. Validate incoming query params from GitHub using Pydantic
+        query_data = GitHubCallbackQuery(
+            code=request.args.get('code'),
+            state=request.args.get('state')
+        )
+    except ValidationError as e:
+        return jsonify({"error": "Missing authorization code", "details": e.errors()}), 400
+
+
+    # do some validation and stuff
+
+    response = AuthResponse(
+        access_token="imagine-a-token-here"
+    )
+
+    return jsonify(response)
