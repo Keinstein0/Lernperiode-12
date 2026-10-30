@@ -74,6 +74,69 @@ POST [node-ip]:5556
 }
 ```
 
+## Client2Router
+
+#### login:
+```
+Client -- login -----> Router -- redirect --> Github
+Client                 Router <-----code----- Github
+Client                 Router ---get token--> Github
+Client                 Router <--token------- Github
+Client                 Router ---get user---> Github
+Client                 Router <--user-------- Github
+Client <--401/JWT----- Router                 Github
+```
+Every JWT is valid only on the specific router and sorting them is the job of the client
+
+#### get all nodes
+```
+Client -- /nodes----> Router
+
+Client <- nodes ----- Router
+```
+
+
+#### get all nodes status
+```
+Client -- /status--> Router
+
+Client <- status --- Router
+```
+
+#### get one nodes status
+```
+Client /status/id-> Router
+
+Client <-status --- Router
+```
+
+#### get one nodes status
+```
+Client /status/id-> Router
+
+Client <-status --- Router
+```
+
+#### get task
+```
+Client --/task/id-> Router
+
+Client <-task------ Router
+```
+Gets a task (node its running on, report if finished, ticket), only shows your tasks
+
+
+#### assign ticket
+```
+Client ---/assign-> Router
+
+Client <-ok+id----- Router
+```
+Returns the routers ID for the task. 
+
+
+
+## Data Structures
 ### ticket structure (ticket = do something)
 
 ```json
