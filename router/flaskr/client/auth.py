@@ -7,8 +7,8 @@ from flask import (
 from pydantic import ValidationError
 
 
-from models.githubAuth import (GitHubCallbackQuery, GitHubTokenResponse)
-from models.clientAuth import (AuthResponse)
+from router.flaskr.models.auth.githubAuth import (GitHubCallbackQuery, GitHubTokenResponse)
+from router.flaskr.models.auth.clientAuth import (AuthResponse)
 
 bp = Blueprint('auth', __name__, url_prefix='/auth')
 
