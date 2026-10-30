@@ -17,7 +17,7 @@ Rieder Regel Paket:
 - [X] Alex+(Vincent): http interaktion zwischen router und client in interactions.md definieren
 
 Präsent:
-- [ ] Alex: Implementation Client2Router endpunkte mit demo Payload
+- [X] Alex: Implementation Client2Router endpunkte mit demo Payload
 - [ ] Alex: Containerisierung des Routers
 - [ ] Vincent+Timo: Erstellen grobes layout der Seite
 - [ ] Vincent: Erstellen und testen der login seite
