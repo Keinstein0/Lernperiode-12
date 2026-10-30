@@ -14,7 +14,7 @@ Arbeitspakete 30.10.2026
 Rieder Regel Paket:
 - [ ] Neo: Erste node definieren und interne architektur designen, funktionsweise und tech stack in markdown file notieren
 - [ ] Vincent+Timo: Svelte Tutorial von BasicSvelte/Introduction bis BasicSvelte/Transitions (oder weiter) absolvieren
-- [ ] Alex+(Vincent): http interaktion zwischen router und client in interactions.md definieren
+- [X] Alex+(Vincent): http interaktion zwischen router und client in interactions.md definieren
 
 Präsent:
 - [ ] Alex: Implementation Client2Router endpunkte mit demo Payload
