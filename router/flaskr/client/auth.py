@@ -1,4 +1,5 @@
 import functools
+import os
 
 from flask import (
     Blueprint, flash, g, redirect, render_template, request, session, url_for
@@ -9,7 +10,7 @@ bp = Blueprint('auth', __name__, url_prefix='/auth')
 GITHUB_CLIENT_ID = os.getenv("GITHUB_CLIENT_ID", "github_client_id")
 GITHUB_AUTH_URL = "https://github.com/login/oauth/authorize"
 
-@app.route("/github", methods=["GET"])
+@bp.route("/github", methods=["GET"])
 def login_with_github():
 
     redirect_uri = "keinstein0.ch" # TODO replace placeholder with actual uri
