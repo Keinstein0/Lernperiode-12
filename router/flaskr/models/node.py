@@ -10,7 +10,7 @@ class NodeStatus(str, Enum):
     ERROR = "error"
     IDLE = "idle"
 
-class TaskModel(BaseModel):
+class NodeModel(BaseModel):
     name: str;
     id: str;
     type: str;
