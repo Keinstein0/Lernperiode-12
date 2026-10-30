@@ -12,7 +12,7 @@ Wird wahrscheinlich nicht mehr done:
 
 Arbeitspakete 30.10.2026
 Rieder Regel Paket:
-- [ ] Neo: Erste node definieren und interne architektur designen, funktionsweise und tech stack in markdown file notieren
+- [x] Neo: Erste node definieren und interne architektur designen, funktionsweise und tech stack in markdown file notieren
 - [ ] Vincent+Timo: Svelte Tutorial von BasicSvelte/Introduction bis BasicSvelte/Transitions (oder weiter) absolvieren
 - [X] Alex+(Vincent): http interaktion zwischen router und client in interactions.md definieren
 
@@ -22,5 +22,5 @@ Präsent:
 - [ ] Vincent+Timo: Erstellen grobes layout der Seite
 - [ ] Vincent: Erstellen und testen der login seite
 - [ ] Timo: Stylen der anderen seiten (noch ohne tatsächliche API requests)
-- [ ] Neo: Claude code container v1 bauen (evtl. seperates repo?)
+- [x] Neo: Claude code container v1 bauen (evtl. seperates repo?)
 - [ ] Neo: Ticket bearbeitung über manuelles http testen
