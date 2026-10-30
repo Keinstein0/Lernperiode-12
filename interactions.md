@@ -94,6 +94,7 @@ Client -- /nodes----> Router
 
 Client <- nodes ----- Router
 ```
+Returns `node` structure
 
 
 #### get all nodes status
@@ -102,20 +103,7 @@ Client -- /status--> Router
 
 Client <- status --- Router
 ```
-
-#### get one nodes status
-```
-Client /status/id-> Router
-
-Client <-status --- Router
-```
-
-#### get one nodes status
-```
-Client /status/id-> Router
-
-Client <-status --- Router
-```
+Returns list of `node` structures
 
 #### get task
 ```
@@ -125,6 +113,8 @@ Client <-task------ Router
 ```
 Gets a task (node its running on, report if finished, ticket), only shows your tasks
 
+Returns `task` structure
+
 
 #### assign ticket
 ```
@@ -132,7 +122,8 @@ Client ---/assign-> Router
 
 Client <-ok+id----- Router
 ```
-Returns the routers ID for the task. 
+Requires a node id and a ticket, builds a task from it
+Returns the task ID for the task. 
 
 
 
@@ -173,5 +164,28 @@ Returns the routers ID for the task.
 
   // Action description
   "description": "changed the color of the continue button to a darker shade of blue"
+}
+```
+
+### node structure
+```json
+{
+  "name": "my-node-12", //metadata
+  "id": "alwjehflksja3a342y",
+  "type": "keinstein0:research-agent-1.3"
+
+  "status": "busy" // [busy, idle, done, error]
+  "task-id": "12345678" //or null
+}
+```
+
+### task structure
+```json
+{
+  "id": "alwjehflksja3a342y", //Self id
+  "node-id": "alwjehflksja3a342y" //node that is doing the task
+  "ticket: //ticket
+  "status": "busy, done, error"
+  "report": //report, only on done/error
 }
 ```
