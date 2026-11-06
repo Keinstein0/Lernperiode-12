@@ -33,3 +33,7 @@ class TaskModel(BaseModel):
     ticket: TicketModel
     status: TaskStatus
     report: ReportModel | None = None  # Standard convention: type | None = default
+
+class TaskAssignRequestModel(BaseModel):
+    node_id: str
+    ticket: TicketModel
