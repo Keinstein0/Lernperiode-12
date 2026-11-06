@@ -26,11 +26,15 @@ class ReportModel(BaseModel):
     git_branch_id: str
     description: str
 
-# Task as seen for the client
-class TaskModel(BaseModel):
+
+
+class TaskStoreModel(BaseModel):
     id: str
     node_id: str
     ticket: TicketModel
+
+# Task as seen for the client
+class TaskModel(TaskStoreModel):
     status: TaskStatus
     report: ReportModel | None = None  # Standard convention: type | None = default
 

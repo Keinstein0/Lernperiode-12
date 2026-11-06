@@ -1,5 +1,6 @@
 from flask import Flask
 from store.baseNodeRepository import BaseNodeRepository, InMemoryNodeRepository
+from store.baseTaskRepository import BaseTaskRepository, InMemoryTaskRepository
 
 
 def create_app(test_config=None):
@@ -18,6 +19,10 @@ def create_app(test_config=None):
     # create store
     node_repo = InMemoryNodeRepository()
     app.extensions['node_repo'] = node_repo
+
+    task_repo = InMemoryTaskRepository()
+    app.extensions['task_repo'] = task_repo
+
     
 
     from . import (routes)
