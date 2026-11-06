@@ -10,6 +10,7 @@ class NodeStatus(str, Enum):
     IN_PROGRESS = "in progress"
     ERROR = "error"
     IDLE = "idle"
+    UNREACHABLE = "unreachable" # status fetching impossible, node returned an error
 
 # Node as seen for the client
 class NodeModel(BaseModel):
