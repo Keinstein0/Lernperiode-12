@@ -2,6 +2,7 @@ from flask import Blueprint, jsonify, request
 from pydantic import ValidationError
 
 from models.task import TaskAssignRequestModel, TaskModel, TaskStatus
+from node.ticket import assignTicket
 
 bp = Blueprint("client", __name__, url_prefix='/task')
 
@@ -29,6 +30,17 @@ def postTask():
         ticket = task_payload.ticket,
         status = TaskStatus.IN_PROGRESS
     )
+
+    try:
+        assignTicket(full_task)
+    except Exception as ex:
+        return jsonify({
+            "error": "assign failure",
+            "exception": str(ex)
+        })
+
+    
+        
 
     # store in task map
 
