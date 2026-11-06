@@ -57,7 +57,7 @@ def postTask():
     return jsonify({
         "status": "assigned",
         "task": full_task.model_dump()
-    }, 201)
+    }), 201
 
 
 
@@ -76,22 +76,65 @@ def getTask(id):
             "exception": str(ex)
         }), 500
 
-    status = getNodeStatusById(task.node_id)
+
+    if task is None:
+        return jsonify({
+            "error": "task not found",
+        }), 404
+
+
+    try:
+        status = getNodeStatusById(id)
+    except:
+        return jsonify({
+            "error": "failed to retreive node ID",
+            "exception": str(ex)
+        }), 502
+
+    if status is None:
+        return jsonify({
+            "error": "node status could not be determined",
+        }), 502
     if (status.task_id != task.id): # TODO clarify this funky edge case
         return jsonify({
             "error": "task no longer active and can therefore no longer be retrieved",
         }), 404
 
 
+    try:
+        task_status = convertNodeStatusToTaskStatus(status.status)
+    except ValueError as ex:
+        return jsonify({
+            "error": "node status cannot be mapped to a task status",
+            "exception": str(ex)
+        }), 502
+
     fullTask = TaskModel(
         id=task.id,
         node_id=task.node_id,
         ticket=task.ticket,
-        status=convertNodeStatusToTaskStatus(status.status),
+        status=task_status,
         report=status.report,
     )
+
+    return jsonify(fullTask.model_dump()), 200
+
 
 
 
 def convertNodeStatusToTaskStatus(status : NodeStatus) -> TaskStatus:
-    ...
+    """Maps a node status to the corresponding task status.
+
+    Raises:
+        ValueError: for node states (IDLE, UNREACHABLE) that have no
+            meaningful task status equivalent.
+    """
+    mapping = {
+        NodeStatus.DONE: TaskStatus.DONE,
+        NodeStatus.IN_PROGRESS: TaskStatus.IN_PROGRESS,
+        NodeStatus.ERROR: TaskStatus.ERROR,
+    }
+    try:
+        return mapping[NodeStatus(status)]
+    except KeyError:
+        raise ValueError(f"Node status '{status}' cannot be converted to a task status")

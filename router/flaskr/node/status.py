@@ -9,8 +9,8 @@ def getNodeStatusById(node_id: str) -> NodeStatusRequestResponse:
     if not node:
         raise Exception("Requested node does not exist in store")
 
-    getNodeStatus(node.host)
+    return getNodeStatus(node.host)
 
 
-def getNodeStatus(host : str) -> NodeStatusRequestResponse: # TODO implement
+def getNodeStatus(node_host: str) -> NodeStatusRequestResponse:
     ...
