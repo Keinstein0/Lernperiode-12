@@ -26,10 +26,17 @@ Präsent:
 - [ ] Neo: Ticket bearbeitung über manuelles http testen
 
 Arbeitspakete bis 06.11.2026
-- [ ] Alex: Implementation Node2Router endpunkte mit demo Payload
-- [ ] Alex: Containerisierung des Routers
+- [X] Alex: Implementation Node2Router endpunkte mit demo Payload
+- [X] Alex: Containerisierung des Routers
 - [ ] Vincent+Timo: Erstellen grobes layout der Seite
 - [ ] Vincent: Erstellen und testen der login seite
 - [ ] Timo: Stylen der anderen seiten (noch ohne tatsächliche API requests)
 - [x] Neo: Claude code container v1 bauen (evtl. seperates repo?)
-- [ ] Neo: Ticket bearbeitung über manuelles http testen
+- [X] Neo: Ticket bearbeitung über manuelles http testen
+
+Arbeitspakete bis 13.11.2026
+- [ ] Vincent + Timo: (rieder) Frontend containerisieren
+- [ ] Alex: (rieder) Unit tests und bugfixes im router
+- [ ] Alex + Neo: (BBB): Testen router2node
+- [ ] Alex + Vincent + Timo: (BBB) Testen client2router 
+
