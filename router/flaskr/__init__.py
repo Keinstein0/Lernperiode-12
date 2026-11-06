@@ -1,5 +1,6 @@
 from flask import Flask
-
+from .store.baseNodeRepository import BaseNodeRepository, InMemoryNodeRepository
+from .store.baseTaskRepository import BaseTaskRepository, InMemoryTaskRepository
 
 
 def create_app(test_config=None):
@@ -14,16 +15,30 @@ def create_app(test_config=None):
         # load the test config if passed in
         app.config.from_mapping(test_config)
 
-    from . import (routes)
-    from client import client
+
+    # create store
+    node_repo = InMemoryNodeRepository()
+    app.extensions['node_repo'] = node_repo
+
+    task_repo = InMemoryTaskRepository()
+    app.extensions['task_repo'] = task_repo
+
+    
+
+    from . import routes
+    from .client import client
     # temporary debug bp
     app.register_blueprint(routes.bp)
 
     # client routes
     app.register_blueprint(client.bp)
 
+    from .node import node
     # node routes
-    # TODO
+    app.register_blueprint(node.bp)
+
+
+
 
 
     return app
