@@ -2,13 +2,12 @@ import functools
 import os
 
 from flask import (
-    Blueprint, flash, g, jsonify, redirect, render_template, request, session, url_for
+    Blueprint, jsonify, redirect, request
 )
 from pydantic import ValidationError
 
-
-from router.flaskr.models.auth.githubAuth import (GitHubCallbackQuery, GitHubTokenResponse)
-from router.flaskr.models.auth.clientAuth import (AuthResponse)
+from ..models.auth.githubAuth import (GitHubCallbackQuery, GitHubTokenResponse)
+from ..models.auth.clientAuth import (AuthResponse)
 
 bp = Blueprint('auth', __name__, url_prefix='/auth')
 
@@ -18,7 +17,7 @@ GITHUB_AUTH_URL = "https://github.com/login/oauth/authorize"
 @bp.route("/github", methods=["GET"])
 def login_with_github():
 
-    redirect_uri = "keinstein0.ch" # TODO replace placeholder with actual uri
+    redirect_uri = os.getenv("GITHUB_REDIRECT_URI", "keinstein0.ch") # TODO replace placeholder with actual uri
 
     github_login_url = (
         f"{GITHUB_AUTH_URL}?"
@@ -50,4 +49,4 @@ def github_callback():
         access_token="imagine-a-token-here"
     )
 
-    return jsonify(response)
+    return jsonify(response.model_dump())

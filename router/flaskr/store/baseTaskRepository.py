@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import Optional
-from models.task import TaskModel
+from ..models.task import TaskModel
 
 class BaseTaskRepository(ABC):
     """The interface that any storage backend must implement."""
@@ -23,7 +23,7 @@ class InMemoryTaskRepository(BaseTaskRepository):
     """An in-memory storage backend using a standard dictionary."""
     
     def __init__(self):
-        # Key: node.id, Value: TaskModel
+        # Key: task.id, Value: TaskModel
         self._storage: dict[str, TaskModel] = {}
 
     def save(self, task: TaskModel) -> None:

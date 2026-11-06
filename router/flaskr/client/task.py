@@ -1,20 +1,20 @@
+from uuid import uuid4
+
 from flask import Blueprint, jsonify, request, current_app
 from pydantic import ValidationError
 
-from models.task import TaskAssignRequestModel, TaskModel, TaskStatus
-from node.ticket import assignTicket
+from ..models.task import TaskAssignRequestModel, TaskModel, TaskStatus
+from ..models.node import NodeStatus
+from ..node.ticket import assignTicket
+from ..node.status import getNodeStatusById
+from ..store.baseTaskRepository import BaseTaskRepository
 
-from store.baseTaskRepository import BaseTaskRepository
-
-from node.status import getNodeStatusById
-from models.node import NodeStatus
-
-bp = Blueprint("client", __name__, url_prefix='/task')
+bp = Blueprint("task", __name__, url_prefix='/task')
 
 
 @bp.route("/assign", methods=["POST"])
 def postTask():
-    json_data = request.get_json()
+    json_data = request.get_json(silent=True)
 
     if not json_data:
         return jsonify({"error": "Request body must be valid JSON"}), 400
@@ -29,7 +29,7 @@ def postTask():
 
 
     full_task = TaskModel(
-        id = "12345", # new uuid, created from node response
+        id = str(uuid4()),
         node_id = task_payload.node_id,
         ticket = task_payload.ticket,
         status = TaskStatus.IN_PROGRESS
@@ -48,6 +48,8 @@ def postTask():
     # assign task to node http request
     try:
         assignTicket(full_task)
+    except NotImplementedError:
+        pass  # ticket assignment not implemented yet; task stays queued in repo
     except Exception as ex:
         return jsonify({
             "error": "assign failure",
@@ -84,17 +86,13 @@ def getTask(id):
 
 
     try:
-        status = getNodeStatusById(id)
-    except:
+        status = getNodeStatusById(task.node_id)
+    except Exception as ex:
         return jsonify({
-            "error": "failed to retreive node ID",
+            "error": "failed to retrieve node status",
             "exception": str(ex)
         }), 502
 
-    if status is None:
-        return jsonify({
-            "error": "node status could not be determined",
-        }), 502
     if (status.task_id != task.id): # TODO clarify this funky edge case
         return jsonify({
             "error": "task no longer active and can therefore no longer be retrieved",

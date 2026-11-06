@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Optional
-# Assuming your NodeStoreModel is defined elsewhere
-from models.node import NodeStoreMetadataModel
+# Assuming your NodeStoreMetadataModel is defined elsewhere
+from ..models.node import NodeStoreMetadataModel
 
 class BaseNodeRepository(ABC):
     """The interface that any storage backend must implement."""

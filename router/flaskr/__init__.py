@@ -1,6 +1,6 @@
 from flask import Flask
-from store.baseNodeRepository import BaseNodeRepository, InMemoryNodeRepository
-from store.baseTaskRepository import BaseTaskRepository, InMemoryTaskRepository
+from .store.baseNodeRepository import BaseNodeRepository, InMemoryNodeRepository
+from .store.baseTaskRepository import BaseTaskRepository, InMemoryTaskRepository
 
 
 def create_app(test_config=None):
@@ -25,15 +25,15 @@ def create_app(test_config=None):
 
     
 
-    from . import (routes)
-    from client import client
+    from . import routes
+    from .client import client
     # temporary debug bp
     app.register_blueprint(routes.bp)
 
     # client routes
     app.register_blueprint(client.bp)
 
-    from node import node
+    from .node import node
     # node routes
     app.register_blueprint(node.bp)
 

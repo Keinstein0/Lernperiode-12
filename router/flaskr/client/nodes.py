@@ -1,12 +1,12 @@
-from flask import Blueprint, jsonify, re
-from models.node import NodeModel, NodeStatus, NodeStatusRequestResponse
+from flask import Blueprint, jsonify
 from flask import current_app
-from store.baseNodeRepository import BaseNodeRepository
-from node.status import getNodeStatusById, getNodeStatus
+from ..models.node import NodeModel, NodeStatus, NodeStatusRequestResponse
+from ..store.baseNodeRepository import BaseNodeRepository
+from ..node.status import getNodeStatusById, getNodeStatus
 
 
 
-bp = Blueprint("client", __name__, url_prefix='/node')
+bp = Blueprint("nodes", __name__, url_prefix='/node')
 
 
 @bp.route("/", methods=["GET"])
@@ -20,9 +20,7 @@ def getNodes(): # TODO make async eventually
         try:
             status = getNodeStatus(node.host)
         except Exception:
-            # Fallback if node is unreachable. 
-            # (Note: Since NodeStatusRequestResponse inherits from NodeStoreModel, 
-            # it requires name, id, host, and type unless they have defaults!)
+            # Fallback if node is unreachable or probing is not implemented.
             status = NodeStatusRequestResponse(
                 name=node.name,
                 id=node.id,
@@ -32,13 +30,7 @@ def getNodes(): # TODO make async eventually
                 task_id=None
             )
         
-        node_model = NodeModel(
-            name=node.name,
-            id=node.id,
-            type=node.type,
-            status=status.status,
-            task_id=status.task_id
-        )
+        node_model = NodeModel.from_store(node, status.status, status.task_id)
         response_nodes.append(node_model.model_dump())
 
     return jsonify(response_nodes), 200
@@ -54,6 +46,7 @@ def getNode(id):
     try:
         status = getNodeStatus(node.host)
     except Exception:
+        # Fallback if node is unreachable or probing is not implemented.
         status = NodeStatusRequestResponse(
             name=node.name,
             id=node.id,
@@ -63,12 +56,6 @@ def getNode(id):
             task_id=None
         )
 
-    node_model = NodeModel(
-        name=node.name,
-        id=node.id,
-        type=node.type,
-        status=status.status,
-        task_id=status.task_id
-    )
+    node_model = NodeModel.from_store(node, status.status, status.task_id)
 
     return jsonify(node_model.model_dump()), 200
