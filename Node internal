@@ -1,0 +1,429 @@
+# UniSK Node: Internal Architecture (Draft v0.1)
+
+**Status:** Draft, for team review
+**Date:** 30 October 2026
+**Scope:** The first UniSK node implementation: a Python service that wraps a headless Claude Code agent.
+**Related:** *Ticket Node System: Discussion Summary* (23 Oct 2026), Router ↔ Node interaction spec
+
+---
+
+## 1. What a Node Is
+
+A node is a self-hosted worker that sits on the same LAN as the router. From the system's point of view it is opaque: it accepts a ticket, does the work in a git branch, and hands back a report. Internally, this node is two layers:
+
+- **Node shell (Python):** speaks the UniSK protocol, runs the state machine, manages git, credentials and persistence. It contains no AI logic.
+- **Worker (Claude Code):** does the actual work inside a prepared git checkout. It is reached through a small adapter interface, so it can later be swapped for another agent (e.g. Pi) or a human-in-the-loop worker without touching the shell.
+
+### Responsibilities
+
+| The node does | The node does not |
+|---|---|
+| Register itself with the router on startup and re-register if forgotten | Authenticate users or check access rights (router's job) |
+| Answer status polls | Decide which tickets it gets (router's job) |
+| Accept exactly one ticket at a time; reject others clearly | Queue or cache tickets |
+| Prepare the git workspace (clone, checkout or create branch) | Store credentials at rest |
+| Run the worker against the ticket | Talk to clients directly |
+| Commit and push results to the working branch | Split multi-discipline jobs (client's job) |
+| Produce a report and hold it until acknowledged (or timed out) | |
+
+---
+
+## 2. Decisions Log
+
+Decisions agreed so far, which this document builds on:
+
+| # | Topic | Decision |
+|---|---|---|
+| D1 | Releasing a finished node | **Delivery is the ack.** The router collects the report on its poll, stores it in a mailbox for the client, then acks the node. The client's own ack only clears its mailbox and never reaches the node. Safety net: a node-side ack timeout (see §5). |
+| D2 | Working branch | If the ticket has `git-branch-id`, that is the working branch. Otherwise the node creates `node/<node-id>/<task-id>`. |
+| D3 | Ticket while busy | Rejected immediately with `409 Conflict`. No queueing or caching. |
+| D4 | Error reporting | Error reports reuse the `description` field; `status: "error"` marks the failure. |
+| D5 | Credentials | Passed by the router per ticket in a `credentials` block. The node holds them in memory for the duration of the task only. |
+| D6 | Trust model | LAN-only trust between router and node for the MVP. No transport auth beyond metadata matching. |
+| D7 | Worker | Claude Code, driven through the Claude Agent SDK for Python. |
+| D8 | Language | Python for the node shell. |
+
+---
+
+## 3. External Interface
+
+### 3.1 Proposed change: named endpoints
+
+The original spec uses the node's root path for both `GET` (status) and `POST` (ticket). Adding an ack call and report retrieval makes the root path ambiguous, so this design moves to named endpoints. **This needs sign-off from whoever builds the router.**
+
+| Method | Path | Caller | Purpose |
+|---|---|---|---|
+| `GET` | `/status` | Router | Poll current state (+ report when done/error) |
+| `POST` | `/ticket` | Router | Assign a ticket |
+| `POST` | `/ack` | Router | Release the node after the report has been stored |
+| `GET` | `/reports/{task-id}` | Router | Fetch a report that was archived by timeout |
+| `GET` | `/health` | Ops | Liveness check (no metadata, no state) |
+
+Outbound, the node calls the router:
+
+| Method | Target | Purpose |
+|---|---|---|
+| `POST` | `[router-ip]:2048` (path TBD with router team) | Register |
+
+### 3.2 Identity block
+
+Every router → node request (except `/health`) carries the node's identity. If any field does not match the node's own config, the request is rejected with `403`.
+
+```json
+{
+  "name": "my-node-12",
+  "id": "alwjehflksja3a342y",
+  "host": "192.168.0.25:5556",
+  "type": "keinstein0:research-agent-1.3"
+}
+```
+
+For `GET` requests (`/status`, `/reports/{task-id}`), the identity block is sent as query parameters or headers, since `GET` bodies are unreliable. **Proposal:** headers `X-Node-Id`, `X-Node-Name`, `X-Node-Host` and `X-Node-Type`.
+
+### 3.3 Registration
+
+On startup the node sends its identity block to the router and retries with exponential backoff (1 s → 60 s cap) until it gets `ok`.
+
+**Re-registration watchdog:** if no status poll arrives for `REREGISTER_AFTER` seconds (default 120), the node assumes the router restarted and lost its registry, and registers again. The router must treat a repeat registration with the same `id` as an update, not an error.
+
+### 3.4 `GET /status`
+
+```json
+{
+  "name": "my-node-12",
+  "id": "alwjehflksja3a342y",
+  "host": "192.168.0.25:5556",
+  "type": "keinstein0:research-agent-1.3",
+
+  "status": "busy",
+  "task-id": "12345678",
+  "report": null
+}
+```
+
+- `status`: one of `idle`, `busy`, `done` or `error`.
+- `task-id`: `null` when idle.
+- `report`: present only when `done` or `error` (see §3.8).
+
+### 3.5 `POST /ticket`
+
+Request: identity block, `task-id`, `ticket` (structure as per spec), plus the new `credentials` block (§3.7).
+
+| Situation | Response |
+|---|---|
+| Accepted | `202 Accepted`, `{"task-id": "12345678", "status": "busy"}` |
+| Identity mismatch | `403 Forbidden` |
+| Malformed ticket | `422 Unprocessable Entity` with validation details |
+| Node not idle (busy, done or error) | `409 Conflict`, `{"reason": "busy", "current-task-id": "..."}` |
+
+A node in `done` or `error` also rejects new tickets until it has been acked or its ack timeout fires. This keeps a single rule ("only `idle` accepts") and guarantees an unread report is never overwritten.
+
+### 3.6 `POST /ack`
+
+Request: identity block + `task-id`.
+
+| Situation | Response |
+|---|---|
+| `task-id` matches current done/error task | `200 OK`, node → `idle`, report moved to archive |
+| `task-id` already acked or archived | `200 OK` (idempotent; the router may retry safely) |
+| `task-id` is the current task but still busy | `409 Conflict` |
+| Unknown `task-id` | `404 Not Found` |
+
+### 3.7 Credentials block (new, per D5)
+
+Added to the ticket request, as a sibling of `ticket`, not inside it, so that the ticket itself can be stored and logged without secrets.
+
+```json
+"credentials": {
+  "anthropic-api-key": "sk-ant-...",
+  "git-token": "ghp_...",
+  "git-username": "x-access-token"
+}
+```
+
+- Kept in memory only, injected into the worker and git processes as environment variables for that task, and dropped when the task ends.
+- Never written to disk, `.git/config`, logs or reports. The logger runs a redaction filter on known secret values.
+- Recommendation for later: the router issues short-lived, repo-scoped tokens (e.g. GitHub App installation tokens) rather than personal tokens.
+
+### 3.8 Report
+
+As per spec. On error, `description` carries the failure reason (D4). `files-of-interest` is computed as described in §7.3.
+
+```json
+{
+  "finished-at": "2026-10-30T14:02:11Z",
+  "finished-by": "alwjehflksja3a342y",
+  "git-repo-url": "github.com/Keinstein0/Lernperiode-12",
+  "git-branch-id": "frontend",
+  "files-of-interest": ["src/components/ContinueButton.svelte"],
+  "description": "Changed the continue button colour from #3B82F6 to #1E40AF ..."
+}
+```
+
+---
+
+## 4. Internal Architecture
+
+```mermaid
+flowchart TB
+    Router((Router))
+
+    subgraph Node["Node process (Python)"]
+        API["API layer<br/>FastAPI + Pydantic"]
+        VAL["Identity validator"]
+        SM["State manager<br/>single slot + lock"]
+        REG["Registrar<br/>+ re-register watchdog"]
+        RUN["Task runner<br/>async supervisor, timeouts"]
+        WS["Workspace manager<br/>git clone / branch / commit / push"]
+        PB["Prompt builder"]
+        WA["Worker adapter<br/>(interface)"]
+        CC["ClaudeCodeWorker<br/>claude-agent-sdk"]
+        RB["Report builder"]
+        STORE[("Persistence<br/>state.json, reports/, logs/")]
+        CRED["Credential vault<br/>in-memory only"]
+    end
+
+    Router -- "GET /status, POST /ticket, POST /ack" --> API
+    REG -- "POST register" --> Router
+    API --> VAL --> SM
+    SM --> RUN
+    RUN --> WS
+    RUN --> PB --> WA --> CC
+    RUN --> RB
+    RB --> SM
+    SM <--> STORE
+    CRED -.-> WS
+    CRED -.-> CC
+    API -. "poll seen" .-> REG
+```
+
+### 4.1 Components
+
+| Component | Responsibility |
+|---|---|
+| **API layer** | FastAPI app exposing the endpoints in §3.1. Pydantic models with kebab-case aliases validate every payload. Contains no business logic; it delegates to the state manager. |
+| **Identity validator** | Compares the incoming identity block with the node config. Mismatch → `403`. |
+| **State manager** | Owns the single task slot and the state machine (§5). All transitions go through one `asyncio.Lock`. Every transition is persisted to `state.json` before it is acknowledged to the caller. |
+| **Registrar** | Registers on startup with backoff. Notes the timestamp of each status poll and re-registers if polls stop (§3.3). |
+| **Task runner** | Launches the task as a background `asyncio` task: workspace prep → worker → commit/push → report. Enforces `TASK_TIMEOUT`, catches every exception and turns it into an `error` report. Guarantees the slot always ends in `done` or `error`, never stuck in `busy`. |
+| **Workspace manager** | Wraps the `git` CLI. Clones or fetches into a per-task directory, checks out or creates the working branch (D2), computes the diff after the worker runs, commits and pushes. Injects the git token via `GIT_ASKPASS`, so it never lands in `.git/config`. Cleans up the workspace once the task is finished. |
+| **Prompt builder** | Turns a ticket into the worker's prompt and system prompt (§6.2). |
+| **Worker adapter** | Abstract interface (§6.1). The task runner only talks to this. |
+| **ClaudeCodeWorker** | Implementation of the adapter using the Claude Agent SDK. |
+| **Report builder** | Combines the worker's summary and the git diff into a spec-compliant report (§7.3). |
+| **Credential vault** | Holds the current task's credentials in memory. Exposes them to the workspace manager and the worker as environment variables. Wipes them when the task ends. |
+| **Persistence** | Local files under `DATA_DIR`: `state.json` (current slot), `reports/<task-id>.json` (archive), `node-id` (generated once), and rotating logs. |
+
+---
+
+## 5. State Machine
+
+```mermaid
+stateDiagram-v2
+    [*] --> idle
+    idle --> busy: POST /ticket (valid)
+    busy --> done: worker finished, pushed
+    busy --> error: any failure / TASK_TIMEOUT
+    done --> idle: POST /ack  or  ACK_TIMEOUT
+    error --> idle: POST /ack  or  ACK_TIMEOUT
+```
+
+| From | Event | To | Side effects |
+|---|---|---|---|
+| `idle` | valid ticket | `busy` | Persist ticket, start task runner |
+| `busy` | task succeeded | `done` | Persist report |
+| `busy` | exception, timeout, push failure | `error` | Persist error report |
+| `done`/`error` | `POST /ack` | `idle` | Move report to `reports/`, clear slot |
+| `done`/`error` | `ACK_TIMEOUT` elapsed (default 30 min) | `idle` | Same as ack; log a warning. Report remains fetchable via `GET /reports/{task-id}` |
+| any | node restart while `busy` | `error` | Report: "Node restarted during task; partial work may exist on branch X" |
+
+**Why the timeout matters:** together with D1 it guarantees a node is never held hostage. The normal path is that the router acks right after storing the report. The timeout only covers a router crash or a lost ack.
+
+---
+
+## 6. Worker Layer
+
+### 6.1 Adapter interface
+
+```python
+class WorkerResult(BaseModel):
+    success: bool
+    summary: str                    # becomes report.description
+    highlighted_files: list[str]    # worker's own pick of relevant files
+    raw_log_path: Path | None       # full transcript, kept locally
+
+class Worker(Protocol):
+    async def run(
+        self,
+        ticket: Ticket,
+        workspace: Path,
+        env: dict[str, str],        # credentials, injected per task
+        deadline: float,
+    ) -> WorkerResult: ...
+
+    async def cancel(self) -> None: ...
+```
+
+Any future worker (Pi agent, a multi-agent container, a human-facing queue) only has to implement this.
+
+### 6.2 ClaudeCodeWorker
+
+Uses the `claude-agent-sdk` Python package, which bundles the Claude Code CLI. The SDK's `query()` call runs one fresh session per task, with `cwd` set to the task workspace.
+
+**Key options:**
+
+| Option | Value | Why |
+|---|---|---|
+| `cwd` | task workspace path | Agent works only inside the checkout |
+| `system_prompt` | Node rules (below) | Define the agent's role and limits |
+| `permission_mode` | `acceptEdits` (MVP) | Unattended edits without prompts. `bypassPermissions` only if running in an isolated container |
+| `allowed_tools` | Read, Edit, Write, Glob, Grep, Bash | Auto-approve the tools needed for coding |
+| `disallowed_tools` / PreToolUse hook | Deny `git push`, `git checkout`, `git switch`, `git reset --hard`, branch deletion | The node owns git; the agent must not move branches or push |
+| `max_turns` | `MAX_TURNS` (default 50) | Bound runaway sessions |
+| `model` | `CLAUDE_MODEL` from config | Per-node choice |
+| env | `ANTHROPIC_API_KEY` from credentials | Per-task key (D5) |
+
+**System prompt (outline):**
+
+1. You are a UniSK node worker. You complete exactly one ticket inside the current repository.
+2. Do not run git commands that commit, push, switch branches or rewrite history. The node handles git.
+3. Start with the files listed under *Files of interest*, if any.
+4. When finished, reply with a final JSON block: `{"success": bool, "summary": str, "highlighted_files": [str]}`.
+
+**User prompt (built from ticket):**
+
+```
+Ticket <task-id> from <created-by>
+Repository: <git-repo-url>, branch <working-branch>
+
+Task:
+<description>
+
+Files of interest:
+- main.py
+```
+
+**Parsing:** the worker streams SDK messages to a transcript file and extracts the final JSON block from the last assistant message. If the block is missing or invalid, the worker falls back to `success = true` (if there were file changes), uses the last assistant text as `summary`, and leaves `highlighted_files` empty.
+
+**Cancellation:** on `TASK_TIMEOUT` the runner cancels the asyncio task, which terminates the SDK subprocess, and the slot moves to `error`.
+
+---
+
+## 7. Ticket Lifecycle
+
+### 7.1 Sequence
+
+```mermaid
+sequenceDiagram
+    participant R as Router
+    participant A as API / State
+    participant T as Task runner
+    participant G as Workspace (git)
+    participant W as ClaudeCodeWorker
+
+    R->>A: POST /ticket (identity, task-id, ticket, credentials)
+    A->>A: validate identity + schema, check idle
+    A-->>R: 202 {task-id, busy}
+    A->>T: start(task)
+    T->>G: clone/fetch, checkout or create branch
+    T->>W: run(ticket, workspace, env)
+    W-->>T: WorkerResult
+    T->>G: diff, commit, push
+    T->>A: report → state done
+    R->>A: GET /status
+    A-->>R: {status: done, report}
+    R->>R: store report in client mailbox
+    R->>A: POST /ack {task-id}
+    A-->>R: 200, state idle
+```
+
+### 7.2 Workspace steps
+
+1. `git clone --filter=blob:none` into `WORKSPACE_DIR/<task-id>` (or reuse a cached mirror and `git worktree add`, as a later optimisation).
+2. If `git-branch-id` is set: check it out. If it does not exist on the remote → `error` ("branch not found"). Otherwise: create `node/<node-id>/<task-id>` from the default branch.
+3. Record the base commit SHA.
+4. Run the worker.
+5. `git add -A`. If there are no changes and the worker reported success → `done` with a "no changes needed" description. Otherwise commit with the message `[<task-id>] <first line of summary>` and author `<node-name> <node-id@unisk.local>`.
+6. `git push origin <branch>`. If the push is rejected because the branch moved: fetch and rebase once. On a conflict → `error`, and the work is pushed to a fallback branch `node/<node-id>/<task-id>-conflict` so nothing is lost.
+7. Delete the workspace directory.
+
+### 7.3 Report assembly
+
+- `description`: the worker's `summary`, or the error reason on failure.
+- `files-of-interest`: the worker's `highlighted_files` that actually appear in `git diff --name-only base..HEAD`. If that list is empty, the full changed-file list (capped at 20).
+- `git-branch-id`: the branch actually pushed (this may be the auto-created or conflict branch).
+- `finished-by`: node id.
+
+---
+
+## 8. Failure Handling
+
+| Failure | Detected by | Result |
+|---|---|---|
+| Clone/fetch fails (bad URL, auth) | Workspace manager | `error`, description names the git error (token redacted) |
+| Given branch missing | Workspace manager | `error` |
+| Worker raises / SDK crashes | Task runner | `error` with exception summary |
+| Worker exceeds `TASK_TIMEOUT` | Task runner | Cancel, `error`, partial changes committed to the branch if any |
+| Worker reports `success: false` | Report builder | `error`, worker's summary as description |
+| Push rejected, rebase conflict | Workspace manager | `error`, work pushed to the `-conflict` branch |
+| Node process dies mid-task | On restart, `state.json` says `busy` | `error` ("node restarted") |
+| Router unreachable at registration | Registrar | Retry with backoff; the API still serves |
+| Router stops polling | Registrar watchdog | Re-register |
+| No ack after done/error | `ACK_TIMEOUT` | Self-release to `idle`, report archived |
+
+---
+
+## 9. Security Notes (MVP)
+
+- **LAN trust (D6):** any host on the LAN that knows the node's identity can send tickets. Acceptable for the MVP, and listed as an open item.
+- **Credentials in transit:** with plain HTTP on the LAN, the API key and git token are visible to anyone sniffing the network. Mitigations for later: TLS between router and node, or a shared HMAC secret per node.
+- **Agent sandboxing:** run each node in its own container with only the workspace volume writable, and no host mounts. This is what makes `bypassPermissions` acceptable, if it is ever needed.
+- **Secret hygiene:** credentials are held in memory only, passed through environment variables, redacted in logs, and never committed. Add a pre-commit scan of the diff for the token values as a cheap last line of defence.
+
+---
+
+## 10. Tech Stack
+
+| Concern | Choice | Notes |
+|---|---|---|
+| Language | Python 3.12 | SDK requires 3.10+ |
+| HTTP server | FastAPI + Uvicorn | Async, auto OpenAPI docs at `/docs` (handy for the router team) |
+| Schemas | Pydantic v2 | Kebab-case aliases to match the spec's JSON |
+| HTTP client | httpx (async) | Registration calls |
+| Agent | `claude-agent-sdk` | Bundles the Claude Code CLI |
+| Git | `git` CLI via `asyncio.create_subprocess_exec` | Simpler and more predictable than GitPython |
+| Persistence | JSON files on disk | One slot plus an archive; no DB needed |
+| Logging | `structlog` (JSON lines) + redaction processor | |
+| Packaging | `uv` + `pyproject.toml` | |
+| Container | Docker (python:3.12-slim + git) | One node per container |
+| Testing | `pytest`, `pytest-asyncio`, a `FakeWorker` implementing the adapter | Lets the whole protocol be tested without API calls |
+
+### Configuration (env vars)
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `NODE_NAME` | — | Display name |
+| `NODE_ID` | generated on first boot, saved to `DATA_DIR/node-id` | Unique id |
+| `NODE_HOST` | — | `ip:port` the router reaches |
+| `NODE_TYPE` | — | Image-style tag, e.g. `keinstein0:claude-coder-0.1` |
+| `NODE_PORT` | `5556` | Listen port |
+| `ROUTER_URL` | — | e.g. `http://192.168.0.10:2048` |
+| `REREGISTER_AFTER` | `120` s | Watchdog threshold |
+| `TASK_TIMEOUT` | `3600` s | Hard cap per task |
+| `ACK_TIMEOUT` | `1800` s | Self-release after done/error |
+| `CLAUDE_MODEL` | — | Model for the worker |
+| `MAX_TURNS` | `50` | Agent turn cap |
+| `WORKSPACE_DIR` | `/work` | Task checkouts |
+| `DATA_DIR` | `/data` | State, reports, logs |
+
+---
+
+## 11. Project Layout
+
+```
+node/
+├── pyproject.toml
+├── Dockerfile
+├── src/unisk_node/
+│   ├── main.py              # app factory, startup/shutdown hooks
+│   ├── config.py           
