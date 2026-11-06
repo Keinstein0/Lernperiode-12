@@ -26,13 +26,14 @@ class ReportModel(BaseModel):
     git_branch_id: str
     description: str
 
-
+# Task as seen for the client
 class TaskModel(BaseModel):
     id: str
     node_id: str
     ticket: TicketModel
     status: TaskStatus
     report: ReportModel | None = None  # Standard convention: type | None = default
+
 
 class TaskAssignRequestModel(BaseModel):
     node_id: str
