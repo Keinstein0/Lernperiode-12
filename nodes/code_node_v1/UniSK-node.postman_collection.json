@@ -1,0 +1,156 @@
+{
+  "info": {
+    "name": "UniSK Node",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Plays the router against a node. Start the node with NODE_ID=postman-node so the identity matches. Fill repo, gitToken (and anthropicKey for the real worker) in the collection variables."
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://127.0.0.1:5556"
+    },
+    {
+      "key": "name",
+      "value": "my-node"
+    },
+    {
+      "key": "id",
+      "value": "postman-node"
+    },
+    {
+      "key": "host",
+      "value": "127.0.0.1:5556"
+    },
+    {
+      "key": "type",
+      "value": "unisk:claude-coder-0.1"
+    },
+    {
+      "key": "repo",
+      "value": "github.com/YOU/REPO"
+    },
+    {
+      "key": "description",
+      "value": "Add a short docstring to main.py"
+    },
+    {
+      "key": "gitToken",
+      "value": ""
+    },
+    {
+      "key": "anthropicKey",
+      "value": ""
+    },
+    {
+      "key": "lastTaskId",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Health",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/health",
+        "description": "Is the process alive? Expect {\"ok\": true}."
+      }
+    },
+    {
+      "name": "2. Status",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/status",
+        "description": "Poll the node. status = idle | busy | done | error. The report is filled when done/error."
+      }
+    },
+    {
+      "name": "3. Send ticket",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"{{name}}\",\n  \"id\": \"{{id}}\",\n  \"host\": \"{{host}}\",\n  \"type\": \"{{type}}\",\n  \"task-id\": \"t{{$timestamp}}\",\n  \"ticket\": {\n    \"created-by\": \"postman\",\n    \"git-repo-url\": \"{{repo}}\",\n    \"git-branch-id\": null,\n    \"files-of-interest\": [],\n    \"description\": \"{{description}}\"\n  },\n  \"credentials\": {\n    \"git-token\": \"{{gitToken}}\",\n    \"anthropic-api-key\": \"{{anthropicKey}}\"\n  }\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": "{{baseUrl}}/ticket",
+        "description": "Assign a ticket. Expect 202. Send it again while busy to see the 409. The task-id is saved to lastTaskId."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (pm.response.code === 202) { pm.collectionVariables.set('lastTaskId', pm.response.json()['task-id']); }",
+              "pm.test('accepted', () => pm.response.to.have.status(202));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Report by task-id",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/reports/{{lastTaskId}}",
+        "description": "Fetch the report of the last ticket you sent, any time after it finished."
+      }
+    },
+    {
+      "name": "5. Wrong identity (expect 403)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"{{name}}\",\n  \"id\": \"not-this-node\",\n  \"host\": \"{{host}}\",\n  \"type\": \"{{type}}\",\n  \"task-id\": \"bad-identity\",\n  \"ticket\": {\n    \"created-by\": \"postman\",\n    \"git-repo-url\": \"{{repo}}\",\n    \"git-branch-id\": null,\n    \"files-of-interest\": [],\n    \"description\": \"{{description}}\"\n  },\n  \"credentials\": {\n    \"git-token\": \"{{gitToken}}\",\n    \"anthropic-api-key\": \"{{anthropicKey}}\"\n  }\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": "{{baseUrl}}/ticket",
+        "description": "Same ticket but the id doesn't match the node. Expect 403."
+      }
+    },
+    {
+      "name": "6. Unsafe task-id (expect 422)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"{{name}}\",\n  \"id\": \"{{id}}\",\n  \"host\": \"{{host}}\",\n  \"type\": \"{{type}}\",\n  \"task-id\": \"../../evil\",\n  \"ticket\": {\n    \"created-by\": \"postman\",\n    \"git-repo-url\": \"{{repo}}\",\n    \"git-branch-id\": null,\n    \"files-of-interest\": [],\n    \"description\": \"{{description}}\"\n  },\n  \"credentials\": {\n    \"git-token\": \"{{gitToken}}\",\n    \"anthropic-api-key\": \"{{anthropicKey}}\"\n  }\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": "{{baseUrl}}/ticket",
+        "description": "Task-ids end up in paths and branch names, so this is rejected. Expect 422."
+      }
+    }
+  ]
+}
