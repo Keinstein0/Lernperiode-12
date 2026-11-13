@@ -51,10 +51,12 @@
 .account-link{background:rgba(22,27,34,.38);border-color:rgba(139,148,158,.25)}
 .account-link:hover{background:rgba(33,38,45,.7)}
 
-/* Experiment: replace the sidebar's hard edge with a quiet fading separator. */
-.sidebar{position:relative;border-right:0}
-.sidebar::after{content:"";position:absolute;pointer-events:none;top:28px;bottom:28px;right:0;width:1px;background:linear-gradient(to bottom,transparent,rgba(139,148,158,.24) 22%,rgba(139,148,158,.24) 78%,transparent)}
+/* Keep the sidebar open to the content; fade only its internal section divider. */
+.sidebar{border-right:0}
+.sidebar::after{content:none}
+.sidebar-separator{position:relative;border-top:0;padding-top:20px;margin-top:23px}
+.sidebar-separator::before{content:"";position:absolute;left:12px;right:12px;top:0;height:1px;background:linear-gradient(to right,rgba(139,148,158,.28),rgba(139,148,158,.16) 45%,transparent 100%);pointer-events:none}
 @media(max-width:700px){
   .sidebar{border-bottom:0}
-  .sidebar::after{top:auto;bottom:0;left:16px;right:16px;width:auto;height:1px;background:linear-gradient(to right,transparent,rgba(139,148,158,.24) 22%,rgba(139,148,158,.24) 78%,transparent)}
+  .sidebar::after{content:none}
 }
