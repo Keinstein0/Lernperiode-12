@@ -9,7 +9,7 @@
  let agent=$state<Node|null>(null);let tasks=$state<Task[]>([]);let error=$state('');let loading=$state(true);
  let active=$derived(tasks.filter(t=>t.status==='busy'));
  async function refresh(){const id=page.params.agent;try{const [nodes,allTasks]=await Promise.all([api.getNodeStatuses(),api.listTasks()]);if(page.params.agent!==id)return;agent=nodes.find(n=>n.id===id)??null;tasks=allTasks.filter(t=>t['node-id']===id);}catch(e){error=e instanceof Error?e.message:String(e);}finally{loading=false;}}
- onMount(()=>{void refresh();const timer=setInterval(()=>void refresh(),4000);return ()=>clearInterval(timer);});
+ onMount(()=>{void refresh();const timer=setInterval(()=>void refresh(),Number(localStorage.getItem('unisk-polling-ms') || '4000') || 2147483647);return ()=>clearInterval(timer);});
 </script>
 <AppShell><div class="content-wrap"><div class="breadcrumbs"><a href="/agents">Agents</a><span>/</span>{page.params.agent}</div>
 {#if loading}<p class="muted-note">Loading agent…</p>{:else if error}<p class="error-note" role="alert">{error}</p>{:else if agent}

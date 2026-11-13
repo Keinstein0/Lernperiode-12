@@ -30,6 +30,12 @@
     <circle cx="12" cy="12" r="9"/><path d="M10 9v6m4-6v6"/>
   {:else if name === 'send'}
     <path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/>
+  {:else if name === 'download'}
+    <path d="M12 3v12m-5-5 5 5 5-5M4 17v4h16v-4"/>
+  {:else if name === 'copy'}
+    <rect x="8" y="8" width="13" height="13" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/>
+  {:else if name === 'settings'}
+    <circle cx="12" cy="12" r="3"/><path d="M10 2h4l.7 2.5 2 .8L19 4l3 3-1.3 2.3.8 2L24 12l-2.5.7-.8 2L22 17l-3 3-2.3-1.3-2 .8L14 22h-4l-.7-2.5-2-.8L5 20l-3-3 1.3-2.3-.8-2L0 12l2.5-.7.8-2L2 7l3-3 2.3 1.3 2-.8z"/>
   {:else if name === 'filter'}
     <path d="M4 7h16M7 12h10m-7 5h4"/>
   {:else if name === 'external'}
