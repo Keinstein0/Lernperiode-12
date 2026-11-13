@@ -130,3 +130,24 @@ def test_finished_task_returns_report(client, registered_node, ticket_payload):
     assert task["report"]["finished-by-node-id"] == registered_node.id
     assert task["report"]["files-of-interest"] == ["main.py"]
     assert task["report"]["description"] == "did the thing"
+
+
+def test_task_list_refreshes_completed_reports(client, registered_node, ticket_payload):
+    """Polling the task list must reveal completion without explicit task refresh."""
+    task_id = post_assignment(client, registered_node.id,
+                              ticket_payload).get_json()["task"]["id"]
+    registered_node.status = "done"
+    registered_node.current_task_id = task_id
+    registered_node.report = {
+        "finished-at": "2026-11-13T09:22:42+00:00",
+        "finished-by-node-id": registered_node.id,
+        "git-repo-url": ticket_payload["git-repo-url"],
+        "git-branch-id": ticket_payload["git-branch-id"],
+        "files-of-interest": [],
+        "description": "finished in demo",
+    }
+    response = client.get("/task/")
+    assert response.status_code == 200
+    task = next(t for t in response.get_json() if t["id"] == task_id)
+    assert task["status"] == "done"
+    assert task["report"]["description"] == "finished in demo"

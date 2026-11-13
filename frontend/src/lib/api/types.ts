@@ -1,9 +1,9 @@
 /** Wire-compatible fields from interactions.md. */
-export type NodeStatus = 'busy' | 'idle' | 'done' | 'error';
+export type NodeStatus = 'busy' | 'idle' | 'done' | 'error' | 'unreachable';
 export type TaskStatus = 'busy' | 'done' | 'error';
 export interface Node { name: string; id: string; type: string; status: NodeStatus; 'task-id': string | null; }
 export interface Ticket { 'created-at': string; 'created-by': string; 'git-repo-url': string; 'git-branch-id': string; 'files-of-interest': string[]; description: string; }
-export interface Report { 'finished-at': string; 'finished-by': string; 'git-repo-url': string; 'git-branch-id': string; 'files-of-interest': string[]; description: string; }
+export interface Report { 'finished-at': string; 'finished-by-node-id': string; 'git-repo-url': string; 'git-branch-id': string; 'files-of-interest': string[]; description: string; }
 export interface Task { id: string; 'node-id': string; ticket: Ticket; status: TaskStatus; report: Report | null; }
 export interface Assignment { nodeId: string; ticket: Ticket; projectSlug?: string; /* Mock-only association; omit from real /assign body */ }
 export interface Session { user: { login: string }; token: string; }

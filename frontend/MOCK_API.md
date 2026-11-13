@@ -38,3 +38,11 @@ chat auto-replies are mock-only features. Newly assigned tickets complete automa
 When integrating the real router, implement `ApiClient` in a new adapter and change
 only `src/lib/api/index.ts` to export it. Authentication/storage/authorization rules
 will need to be designed before using real tokens. The app shell redirects visitors without a mock session to `/login` (client-side UI gating only). The mock persists a non-sensitive fake session token for UI testing only; never use it for real authentication or authorization.
+
+## Router-backed integration demo
+
+See [`../DEMO.md`](../DEMO.md). `VITE_API_MODE=router` switches to the real
+router transport for nodes and tasks, using same-origin `/api` requests. The
+Vite proxy targets `ROUTER_INTERNAL_URL`; the mock implementation stays
+available for offline development. Project, conversation, and demo-session
+operations remain local until their backend endpoints are specified.

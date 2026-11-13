@@ -1,0 +1,29 @@
+# Self-contained demo: UI + existing router + simulated node, no GitHub/LLM credentials.
+services:
+  router:
+    build: ./router
+    ports:
+      - "127.0.0.1:5000:5000"
+    environment:
+      DEMO_MODE: "1"
+    command: ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "1", "flaskr:create_app()"]
+  demo-node:
+    build: ./demo-node
+    depends_on:
+      - router
+    environment:
+      ROUTER_URL: http://router:5000
+      NODE_HOST: demo-node
+      NODE_PORT: "5556"
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.demo
+    depends_on:
+      - router
+      - demo-node
+    ports:
+      - "127.0.0.1:5173:5173"
+    environment:
+      VITE_API_MODE: router
+      ROUTER_INTERNAL_URL: http://router:5000

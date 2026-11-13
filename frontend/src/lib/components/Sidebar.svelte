@@ -1,9 +1,16 @@
 <script>
- import { onMount } from 'svelte';
+ import { page } from '$app/state';
  import { api } from '#lib/api';
  import Icon from './Icon.svelte';
  let projects = $state([]);
- onMount(() => { api.listProjects().then((items) => projects = items).catch(() => {}); });
+ $effect(() => {
+  // Refresh the recent-project navigation on every route change, including
+  // after a project is created or deleted.
+  const location = page.url.pathname;
+  let valid = true;
+  void api.listProjects().then(items => { if (valid) projects = items; }).catch(() => {});
+  return () => { valid = false; };
+ });
 </script>
 <aside class="sidebar">
  <div class="sidebar-group-label">Workspace</div>

@@ -19,7 +19,7 @@ let nodes: Node[] = [
   { id: 'plan-06', name: 'Planning agent', type: 'keinstein0:planning-agent-1.0', status: 'busy', 'task-id': '29' }
 ];
 function makeTask(id: string, description: string, nodeId: string, status: Task['status'], project: string): Task {
-  return { id, 'node-id': nodeId, status, ticket: { 'created-at': '2026-11-13T08:00:00Z', 'created-by': 'keinstein0', 'git-repo-url': projects.find((p) => p.slug === project)?.repository ?? '', 'git-branch-id': 'feature/frontend-prototype', 'files-of-interest': [], description }, report: status === 'done' ? { 'finished-at': '2026-11-13T08:30:00Z', 'finished-by': nodeId, 'git-repo-url': '', 'git-branch-id': 'feature/frontend-prototype', 'files-of-interest': [], description: `Completed: ${description}` } : null };
+  return { id, 'node-id': nodeId, status, ticket: { 'created-at': '2026-11-13T08:00:00Z', 'created-by': 'keinstein0', 'git-repo-url': projects.find((p) => p.slug === project)?.repository ?? '', 'git-branch-id': 'feature/frontend-prototype', 'files-of-interest': [], description }, report: status === 'done' ? { 'finished-at': '2026-11-13T08:30:00Z', 'finished-by-node-id': nodeId, 'git-repo-url': '', 'git-branch-id': 'feature/frontend-prototype', 'files-of-interest': [], description: `Completed: ${description}` } : null };
 }
 let tasks: Task[] = [
   makeTask('24', 'Audit existing components', 'review-03', 'done', 'website-redesign'),
@@ -72,14 +72,14 @@ function processDueTasks() {
 }
 function finishTask(task: Task) {
   task.status = 'done';
-  task.report = { 'finished-at': new Date().toISOString(), 'finished-by': task['node-id'], 'git-repo-url': task.ticket['git-repo-url'], 'git-branch-id': task.ticket['git-branch-id'], 'files-of-interest': task.ticket['files-of-interest'], description: `Completed: ${task.ticket.description}` };
+  task.report = { 'finished-at': new Date().toISOString(), 'finished-by-node-id': task['node-id'], 'git-repo-url': task.ticket['git-repo-url'], 'git-branch-id': task.ticket['git-branch-id'], 'files-of-interest': task.ticket['files-of-interest'], description: `Completed: ${task.ticket.description}` };
   const node = nodes.find(n => n.id === task['node-id']);
   if (node?.['task-id'] === task.id) { node.status = 'done'; node['task-id'] = null; }
 }
 let nextTaskId = 33;
 let nextMessageId = 4;
 const slugify = (name: string) => name.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-export const mockApi: ApiClient & { getProjectForTask(id: string): string | undefined } = {
+export const mockApi: ApiClient & { getProjectForTask(id: string): string | undefined; recordAgentMessage(project: string, body: string): Promise<ChatMessage> } = {
   async login(): Promise<Session> { await delay(); session = { user: { login: 'keinstein0' }, token: 'mock-session-not-a-real-jwt' }; save(); return copy(session); },
   async getSession() { await delay(); return session ? copy(session) : null; },
   async logout() { await delay(); session = null; save(); },
@@ -167,6 +167,11 @@ export const mockApi: ApiClient & { getProjectForTask(id: string): string | unde
     const message: ChatMessage = { id: `m${nextMessageId++}`, project, author: 'You', time: new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }), body: body.trim() };
     conversations.push(message); save();
     return copy(message);
+  },
+  async recordAgentMessage(project, body) {
+    await delay();
+    const reply: ChatMessage = { id: `m${nextMessageId++}`, project, author: 'Main agent', time: new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }), body };
+    conversations.push(reply); save(); return copy(reply);
   },
   getProjectForTask(id) { return taskProject.get(id); }
 };

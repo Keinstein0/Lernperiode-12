@@ -14,15 +14,14 @@ bp = Blueprint("task", __name__, url_prefix='/task')
 
 @bp.route("/", methods=["GET"])
 def getTasks():
+    """Return all tasks, refreshing their stored status when nodes are reachable."""
     try:
         task_repo: BaseTaskRepository = current_app.extensions['task_repo']
         tasks = task_repo.get_all()
+        for task in tasks:
+            _refresh_task(task, task_repo)
     except Exception as ex:
-        return jsonify({
-            "error": "database failure",
-            "exception": str(ex)
-        }), 500
-
+        return jsonify({"error": "database failure", "exception": str(ex)}), 500
     return jsonify([task.to_json() for task in tasks]), 200
 
 
@@ -97,57 +96,55 @@ def postTask():
     
 
 
-@bp.route("/<string:id>", methods=["GET"])
-def getTask(id):
-    try:
-        task_repo: BaseTaskRepository = current_app.extensions['task_repo']
-        task = task_repo.get(id)
-    except Exception as ex: #TODO maybe cancel task?
-        return jsonify({
-            "error": "database failure",
-            "exception": str(ex)
-        }), 500
+def _refresh_task(task: TaskModel, repo: BaseTaskRepository) -> None:
+    """Keep completed task reports available even after a node starts new work.
 
+    Transient node failures retain the last known snapshot. The node's
+    /reports/<task-id> endpoint provides historical reports after a new ticket.
+    """
+    import requests
+    from ..store.baseNodeRepository import BaseNodeRepository
 
-    if task is None:
-        return jsonify({
-            "error": "task not found",
-        }), 404
-
-
+    if task.status in (TaskStatus.DONE, TaskStatus.ERROR) and task.report:
+        return
+    nodes: BaseNodeRepository = current_app.extensions['node_repo']
+    node = nodes.get(task.node_id)
+    if not node:
+        return
     try:
         status = getNodeStatusById(task.node_id)
-    except Exception as ex:
-        return jsonify({
-            "error": "failed to retrieve node status",
-            "exception": str(ex)
-        }), 502
+    except (ValueError, requests.RequestException):
+        return
 
-    if (status.task_id != task.id): # TODO clarify this funky edge case
-        return jsonify({
-            "error": "task no longer active and can therefore no longer be retrieved",
-        }), 404
+    if status.task_id == task.id and status.status in (NodeStatus.BUSY, NodeStatus.DONE, NodeStatus.ERROR):
+        task.status = convertNodeStatusToTaskStatus(status.status)
+        task.report = status.report
+        repo.save(task)
+        return
 
-
+    # The current status belongs to another task. Query the archived report.
     try:
-        task_status = convertNodeStatusToTaskStatus(status.status)
-    except ValueError as ex:
-        return jsonify({
-            "error": "node status cannot be mapped to a task status",
-            "exception": str(ex)
-        }), 502
-
-    fullTask = TaskModel(
-        id=task.id,
-        node_id=task.node_id,
-        ticket=task.ticket,
-        status=task_status,
-        report=status.report,
-    )
-
-    return jsonify(fullTask.to_json()), 200
+        response = requests.get(f"http://{node.host}/reports/{task.id}", timeout=5)
+        if response.status_code != 200:
+            return
+        payload = response.json()
+        from ..models.task import ReportModel
+        if payload.get('status') in ('done', 'error') and payload.get('report'):
+            task.status = TaskStatus(payload['status'])
+            task.report = ReportModel.model_validate(payload['report'])
+            repo.save(task)
+    except (requests.RequestException, ValueError, KeyError):
+        return
 
 
+@bp.route("/<string:id>", methods=["GET"])
+def getTask(id):
+    task_repo: BaseTaskRepository = current_app.extensions['task_repo']
+    task = task_repo.get(id)
+    if task is None:
+        return jsonify({"error": "task not found"}), 404
+    _refresh_task(task, task_repo)
+    return jsonify(task.to_json()), 200
 
 
 def convertNodeStatusToTaskStatus(status : NodeStatus) -> TaskStatus:
