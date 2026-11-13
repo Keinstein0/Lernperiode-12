@@ -20,6 +20,20 @@
     <rect x="3" y="3" width="18" height="18" rx="2"/><path d="m7 9 2 2 4-4M14 10h4M7 16h11"/>
   {:else if name === 'git'}
     <circle cx="6" cy="3" r="2"/><path d="M6 5v12"/><circle cx="6" cy="19" r="2"/><circle cx="18" cy="6" r="2"/><path d="M18 8v2a6 6 0 0 1-6 6H6"/>
+  {:else if name === 'circle-check'}
+    <circle cx="12" cy="12" r="9"/><path d="m8 12 2.5 2.5L16 9"/>
+  {:else if name === 'circle-dot'}
+    <circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/>
+  {:else if name === 'circle-dashed'}
+    <path d="M12 3a9 9 0 0 1 4.5 1.2M19 7a9 9 0 0 1 1.8 4.5M20 15a9 9 0 0 1-3 4M13 21a9 9 0 0 1-4.5-1.2M5 17a9 9 0 0 1-1.8-4.5M4 9a9 9 0 0 1 3-4"/>
+  {:else if name === 'circle-pause'}
+    <circle cx="12" cy="12" r="9"/><path d="M10 9v6m4-6v6"/>
+  {:else if name === 'clock'}
+    <circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>
+  {:else if name === 'calendar'}
+    <rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4m10-4v4M3 10h18"/>
+  {:else if name === 'activity'}
+    <path d="M3 12h4l3-7 4 14 3-7h4"/>
   {:else if name === 'arrow-left'}
     <path d="m12 19-7-7 7-7M5 12h14"/>
   {:else if name === 'github'}

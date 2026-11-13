@@ -36,3 +36,20 @@
 .simple-header .brand-mark{width:30px;height:30px}
 @media(max-width:700px){.topbar{gap:12px;padding-inline:14px}.brand-mark{width:29px;height:29px}.topbar-divider,.topbar-label{display:none}.account-link{padding:7px}.account-link span{display:none}}
 @media(prefers-reduced-transparency:reduce){.app-frame::before,.login-layout::before{opacity:.06}}
+
+/* Semantic, consistent task and agent indicators. Status is conveyed by icon and label. */
+.status-symbol{display:inline-flex;align-items:center;justify-content:center;flex:none;color:#8b949e}
+.status-symbol.success{color:#56a77a}
+.status-symbol.progress{color:#bd9b5d}
+.status-symbol.muted{color:#8b949e}
+.simple-row>.status-symbol,.task-item>.status-symbol{margin-top:1px}
+.row-end,.task-pill,.agent-status,.detail-list dd{display:inline-flex;align-items:center;gap:7px}
+.detail-list dt{display:inline-flex;align-items:center;gap:9px}
+.detail-list dt>.ui-icon{color:#8b949e}
+.agent-status i{display:none}
+/* Header shares the page background and gradually dissolves into the workspace. */
+.topbar{position:relative;z-index:2;background:linear-gradient(180deg,rgba(19,24,31,.86),rgba(13,17,23,.5) 78%,rgba(13,17,23,.12));border-bottom:0;isolation:isolate}
+.topbar::after{content:"";position:absolute;z-index:-1;pointer-events:none;top:100%;left:0;right:0;height:35px;background:linear-gradient(180deg,rgba(13,17,23,.18),transparent)}
+.topbar-divider{border-color:rgba(139,148,158,.2)}
+.account-link{background:rgba(22,27,34,.38);border-color:rgba(139,148,158,.25)}
+.account-link:hover{background:rgba(33,38,45,.7)}
