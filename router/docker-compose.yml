@@ -1,0 +1,13 @@
+services:
+  router:
+    build: .
+    image: router:latest
+    ports:
+      - "5000:5000"
+    env_file:
+      - .env
+    environment:
+      # Optional overrides; values here take precedence over .env
+      GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID:-}
+      GITHUB_REDIRECT_URI: ${GITHUB_REDIRECT_URI:-}
+    restart: unless-stopped
