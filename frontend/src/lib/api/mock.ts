@@ -1,4 +1,4 @@
-import type { ApiClient, Assignment, ChatMessage, Node, Project, Session, Task } from './types';
+import type { ApiClient, Assignment, ChatMessage, Node, Project, ProjectInput, Session, Task } from './types';
 
 // In-memory mock router. All methods are asynchronous; no fetch or external network calls.
 const delay = (ms = 110) => new Promise<void>((resolve) => setTimeout(resolve, ms));
@@ -40,6 +40,7 @@ const conversations: ChatMessage[] = [
 ];
 let nextTaskId = 33;
 let nextMessageId = 4;
+const slugify = (name: string) => name.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 export const mockApi: ApiClient & { getProjectForTask(id: string): string | undefined } = {
   async login(): Promise<Session> { await delay(); return { user: { login: 'keinstein0' }, token: 'mock-session-not-a-real-jwt' }; },
   async listNodes() { await delay(); return copy(nodes); },
@@ -47,7 +48,7 @@ export const mockApi: ApiClient & { getProjectForTask(id: string): string | unde
   async getTask(id) { await delay(); const task = tasks.find((t) => t.id === id); if (!task) throw new Error(`Task ${id} not found`); return copy(task); },
   async listTasks() { await delay(); return copy(tasks); },
   async listProjectTasks(slug) { await delay(); return copy(tasks.filter((t) => taskProject.get(t.id) === slug)); },
-  async assignTicket({ nodeId, ticket }: Assignment) {
+  async assignTicket({ nodeId, ticket, projectSlug }: Assignment) {
     await delay();
     const node = nodes.find((n) => n.id === nodeId);
     if (!node) throw new Error('Selected agent does not exist');
@@ -57,8 +58,43 @@ export const mockApi: ApiClient & { getProjectForTask(id: string): string | unde
     tasks.unshift({ id, 'node-id': nodeId, ticket: copy(ticket), status: 'busy', report: null });
     node.status = 'busy'; node['task-id'] = id;
     const project = projects.find((p) => p.repository === ticket['git-repo-url']);
-    taskProject.set(id, project?.slug ?? 'website-redesign');
+    taskProject.set(id, projectSlug && projects.some(p => p.slug === projectSlug) ? projectSlug : project?.slug ?? 'website-redesign');
     return { id };
+  },
+  async createProject(input: ProjectInput) {
+    await delay();
+    if (!input.name.trim() || !input.description.trim()) throw new Error('Name and description are required');
+    const slug = slugify(input.name);
+    if (!slug || projects.some((p) => p.slug === slug)) throw new Error('A project with that name already exists');
+    const project: Project = { ...input, slug, name: input.name.trim(), description: input.description.trim(), details: input.details.trim(), repository: input.repository?.trim() || null, status: 'Active', owner: 'keinstein0', created: new Date().toLocaleDateString('en-GB'), updated: 'Just now' };
+    projects.unshift(project); return copy(project);
+  },
+  async updateProject(slug, input) {
+    await delay();
+    const project = projects.find((p) => p.slug === slug);
+    if (!project) throw new Error('Project not found');
+    if (input.name !== undefined && !input.name.trim()) throw new Error('Project name cannot be empty');
+    if (input.description !== undefined && !input.description.trim()) throw new Error('Description cannot be empty');
+    Object.assign(project, input, { updated: 'Just now' }); return copy(project);
+  },
+  async advanceTask(id) {
+    await delay(250);
+    const task = tasks.find((t) => t.id === id);
+    if (!task) throw new Error('Task not found');
+    if (task.status === 'busy') {
+      task.status = 'done';
+      task.report = { 'finished-at': new Date().toISOString(), 'finished-by': task['node-id'], 'git-repo-url': task.ticket['git-repo-url'], 'git-branch-id': task.ticket['git-branch-id'], 'files-of-interest': task.ticket['files-of-interest'], description: `Completed: ${task.ticket.description}` };
+      const node = nodes.find(n => n.id === task['node-id']);
+      if (node && node['task-id'] === id) { node.status = 'done'; node['task-id'] = null; }
+    }
+    return copy(task);
+  },
+  async getAgentReply(project) {
+    await delay(450);
+    if (!projects.some((p) => p.slug === project)) throw new Error('Project not found');
+    const last = [...conversations].reverse().find(m => m.project === project && m.author === 'You');
+    const reply: ChatMessage = { id: `m${nextMessageId++}`, project, author: 'Main agent', time: new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }), body: last ? `I’ve received your request: “${last.body}”. I’ll use the project context and coordinate the relevant tasks.` : 'Ready to help with this project.' };
+    conversations.push(reply); return copy(reply);
   },
   async listProjects() { await delay(); return copy(projects); },
   async getProject(slug) { await delay(); return copy(projects.find((p) => p.slug === slug) ?? null); },

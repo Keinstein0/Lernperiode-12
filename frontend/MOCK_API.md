@@ -3,7 +3,7 @@
 The frontend imports `api` from `src/lib/api/index.ts`. The exported client implements
 `ApiClient` from `types.ts` through `mock.ts`. **No HTTP requests are made.**
 All methods return Promises and return cloned data to simulate request/response boundaries.
-The mock stores ticket assignments and conversation messages in memory; refresh resets them.
+The mock stores ticket assignments, project edits, and conversation messages in memory; a full page reload resets them.
 
 ## Covered client-to-router operations (interactions.md)
 
@@ -19,7 +19,7 @@ The shape of `Node`, `Task`, `Ticket`, and `Report` retains the hyphenated field
 specified in `interactions.md`. The mock status names are exactly `busy`, `idle`,
 `done`, and `error` for nodes, and `busy`, `done`, and `error` for tasks.
 
-`listProjects`, `getProject`, `listProjectTasks`, `listMessages`, `sendMessage`, and
+`listProjects`, `getProject`, `createProject`, `updateProject`, `listProjectTasks`, `listMessages`, `sendMessage`, `getAgentReply`, `advanceTask`, and
 `listTasks` are **mock-only additions**: there is no defined router endpoint for them
 in `interactions.md` yet. The project list, chat, global agent directory, task creation,
 and task detail view all access the adapter instead of importing static fixture arrays.
@@ -27,6 +27,14 @@ and task detail view all access the adapter instead of importing static fixture 
 The router-to-node registration, status polling, and ticket dispatch workflows belong
 on the backend and are deliberately not implemented in the frontend. Ticket creation
 on the frontend represents **only** the client-to-router `/assign` contract.
+
+For local UI testing, `assignTicket` also accepts an optional `projectSlug` to associate
+a ticket with a project that does not yet have a repository. This field is **not** part
+of the documented `/assign` body and must be removed when wiring real HTTP requests.
+
+The project editor, task search/status filter, task completion simulation, and
+chat auto-replies are mock-only features. Simulated completion intentionally runs
+only after clicking **Simulate status update** in the task detail view.
 
 When integrating the real router, implement `ApiClient` in a new adapter and change
 only `src/lib/api/index.ts` to export it. Authentication/storage/authorization rules

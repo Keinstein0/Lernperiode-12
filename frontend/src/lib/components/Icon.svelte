@@ -28,6 +28,14 @@
     <path d="M12 3a9 9 0 0 1 4.5 1.2M19 7a9 9 0 0 1 1.8 4.5M20 15a9 9 0 0 1-3 4M13 21a9 9 0 0 1-4.5-1.2M5 17a9 9 0 0 1-1.8-4.5M4 9a9 9 0 0 1 3-4"/>
   {:else if name === 'circle-pause'}
     <circle cx="12" cy="12" r="9"/><path d="M10 9v6m4-6v6"/>
+  {:else if name === 'send'}
+    <path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/>
+  {:else if name === 'filter'}
+    <path d="M4 7h16M7 12h10m-7 5h4"/>
+  {:else if name === 'external'}
+    <path d="M13 5h6v6m0-6-9 9"/><path d="M19 13v5a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h5"/>
+  {:else if name === 'edit'}
+    <path d="M12 20h9M4 16l-1 5 5-1L20 8a2.8 2.8 0 0 0-4-4L4 16Z"/>
   {:else if name === 'plus'}
     <path d="M12 5v14M5 12h14"/>
   {:else if name === 'refresh'}
