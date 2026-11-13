@@ -9,7 +9,9 @@ from .status import getNodeStatus
 bp = Blueprint("register", __name__, url_prefix='/register')
 
 
-@bp.route("/", methods=["POST"])
+# strict_slashes=False: both /register and /register/ work (a 308 redirect
+# would make the node's HTTP client fail instead of following it)
+@bp.route("/", methods=["POST"], strict_slashes=False)
 def register():
     # 1. Validate JSON
     json_data = request.get_json(silent=True)
@@ -18,7 +20,7 @@ def register():
 
     # 2. Validate JSON schema
     try:
-        node_registration_request_payload = NodeStoreMetadataModel(**json_data)
+        node_registration_request_payload = NodeStoreMetadataModel.model_validate(json_data)
     except ValidationError as e:
         return jsonify({
             "error": "Validation failed",
@@ -57,7 +59,7 @@ def register():
 
         node_repo.save(node_registration_request_payload)
         return jsonify(
-            node_registration_request_payload.model_dump()
+            node_registration_request_payload.to_json()
         ), 201
 
     except Exception as ex:

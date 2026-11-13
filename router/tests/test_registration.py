@@ -67,3 +67,13 @@ def test_register_non_json_body_is_rejected(client):
                            content_type="text/plain")
     assert response.status_code == 400
 
+
+
+def test_register_without_trailing_slash_works(client, mock_node):
+    """POST /register (no slash) must reach the real registration, not a stub
+    or a redirect the node's HTTP client won't follow."""
+    response = client.post("/register", json={
+        "name": mock_node.name, "id": mock_node.id,
+        "host": mock_node.host, "type": mock_node.type,
+    })
+    assert response.status_code == 201

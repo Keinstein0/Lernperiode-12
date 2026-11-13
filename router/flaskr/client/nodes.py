@@ -31,7 +31,7 @@ def getNodes(): # TODO make async eventually
             )
         
         node_model = NodeModel.from_store(node, status.status, status.task_id)
-        response_nodes.append(node_model.model_dump())
+        response_nodes.append(node_model.to_json())
 
     return jsonify(response_nodes), 200
 
@@ -58,4 +58,4 @@ def getNode(id):
 
     node_model = NodeModel.from_store(node, status.status, status.task_id)
 
-    return jsonify(node_model.model_dump()), 200
+    return jsonify(node_model.to_json()), 200

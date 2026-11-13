@@ -2,33 +2,37 @@ from __future__ import annotations  # Allows forward references for type hints
 
 from datetime import datetime, timezone
 from enum import Enum
-from pydantic import BaseModel, Field
+from pydantic import Field
+
+from .base import WireModel
 
 
 class TaskStatus(str, Enum):
     DONE = "done"
-    IN_PROGRESS = "in progress"
+    BUSY = "busy"
     ERROR = "error"
 
 
-class TicketModel(BaseModel):
+class TicketModel(WireModel):
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-    created_by_github_user_id: str
+    created_by: str
     git_repo_url: str
-    git_branch_id: str
+    git_branch_id: str | None = None  # None: the node creates its own branch
+    files_of_interest: list[str] = Field(default_factory=list)
     description: str
 
 
-class ReportModel(BaseModel):
+class ReportModel(WireModel):
     finished_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     finished_by_node_id: str
     git_repo_url: str
     git_branch_id: str
+    files_of_interest: list[str] = Field(default_factory=list)
     description: str
 
 
 
-class TaskStoreModel(BaseModel):
+class TaskStoreModel(WireModel):
     id: str
     node_id: str
     ticket: TicketModel
@@ -39,6 +43,6 @@ class TaskModel(TaskStoreModel):
     report: ReportModel | None = None
 
 
-class TaskAssignRequestModel(BaseModel):
+class TaskAssignRequestModel(WireModel):
     node_id: str
     ticket: TicketModel

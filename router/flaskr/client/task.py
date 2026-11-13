@@ -23,7 +23,7 @@ def getTasks():
             "exception": str(ex)
         }), 500
 
-    return jsonify([task.model_dump() for task in tasks]), 200
+    return jsonify([task.to_json() for task in tasks]), 200
 
 
 @bp.route("/assign", methods=["POST"])
@@ -34,7 +34,7 @@ def postTask():
         return jsonify({"error": "Request body must be valid JSON"}), 400
 
     try:
-        task_payload = TaskAssignRequestModel(**json_data)
+        task_payload = TaskAssignRequestModel.model_validate(json_data)
     except ValidationError as e:
         return jsonify({
             "error": "Validation failed", 
@@ -53,7 +53,7 @@ def postTask():
             "exception": str(ex)
         }), 503
 
-    if node_status.status == NodeStatus.IN_PROGRESS:
+    if node_status.status == NodeStatus.BUSY:
         return jsonify({"error": "node is busy"}), 409
     if node_status.status == NodeStatus.UNREACHABLE:
         return jsonify({"error": "node is unavailable"}), 503
@@ -62,7 +62,7 @@ def postTask():
         id = str(uuid4()),
         node_id = task_payload.node_id,
         ticket = task_payload.ticket,
-        status = TaskStatus.IN_PROGRESS
+        status = TaskStatus.BUSY
     )
 
     # store in task map
@@ -88,7 +88,7 @@ def postTask():
 
     return jsonify({
         "status": "assigned",
-        "task": full_task.model_dump()
+        "task": full_task.to_json()
     }), 201
 
 
@@ -145,7 +145,7 @@ def getTask(id):
         report=status.report,
     )
 
-    return jsonify(fullTask.model_dump()), 200
+    return jsonify(fullTask.to_json()), 200
 
 
 
@@ -159,7 +159,7 @@ def convertNodeStatusToTaskStatus(status : NodeStatus) -> TaskStatus:
     """
     mapping = {
         NodeStatus.DONE: TaskStatus.DONE,
-        NodeStatus.IN_PROGRESS: TaskStatus.IN_PROGRESS,
+        NodeStatus.BUSY: TaskStatus.BUSY,
         NodeStatus.ERROR: TaskStatus.ERROR,
     }
     try:
