@@ -1,7 +1,9 @@
-# Use this workspace to collaborate
 workspace:
   id: 0a8a9ab8-3bb4-4f60-8d86-9576c6df0d2e
-
 localResources:
   collections:
     - ../nodes/code_node_v1/UniSK-node.postman_collection.json
+cloudResources:
+  collections:
+    ../postman/collections/NodeEndpoints: 47184342-259f1c4b-1b9f-4d0e-8cd4-237e04f912c1
+    ../postman/collections/RouterEndpoints: 47184342-9cc40fff-a260-437d-8ce8-14f154e5e8a5
