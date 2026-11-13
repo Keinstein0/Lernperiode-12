@@ -1,0 +1,1 @@
+<header class="topbar"><a href="/" class="product-name">UniSK</a><span class="topbar-divider"></span><span class="topbar-label">Workspace</span><div class="topbar-right"><a href="/login" class="account-label">Account</a></div></header>

@@ -1,12 +1,1 @@
-<script lang="ts">
-	import favicon from '#lib/assets/favicon.svg';
-	import type { LayoutProps } from './$types';
-
-	let { children }: LayoutProps = $props();
-</script>
-
-<svelte:head>
-	<link rel="icon" href={favicon} />
-</svelte:head>
-
-{@render children()}
+<script>import '../app.css';let {children}=$props();</script><svelte:head><meta name="theme-color" content="#0d1117"/><title>UniSK</title><meta name="description" content="UniSK project workspace"/></svelte:head>{@render children()}

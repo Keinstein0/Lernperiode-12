@@ -1,0 +1,1 @@
+<div class="login-layout"><header class="simple-header"><a href="/">UniSK</a></header><main class="login-form"><h1>Sign in to UniSK</h1><div class="login-box"><button type="button" disabled>Continue with GitHub</button></div><a class="back-home" href="/">← Projects</a></main></div>

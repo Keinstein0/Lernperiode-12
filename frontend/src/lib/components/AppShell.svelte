@@ -1,0 +1,1 @@
+<script>import Sidebar from './Sidebar.svelte';import Topbar from './Topbar.svelte';let {children}=$props();</script><div class="app-frame"><Topbar/><div class="app-body"><Sidebar/><main class="main-area">{@render children()}</main></div></div>
