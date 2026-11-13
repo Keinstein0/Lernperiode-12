@@ -12,6 +12,20 @@ from ..store.baseTaskRepository import BaseTaskRepository
 bp = Blueprint("task", __name__, url_prefix='/task')
 
 
+@bp.route("/", methods=["GET"])
+def getTasks():
+    try:
+        task_repo: BaseTaskRepository = current_app.extensions['task_repo']
+        tasks = task_repo.get_all()
+    except Exception as ex:
+        return jsonify({
+            "error": "database failure",
+            "exception": str(ex)
+        }), 500
+
+    return jsonify([task.to_json() for task in tasks]), 200
+
+
 @bp.route("/assign", methods=["POST"])
 def postTask():
     json_data = request.get_json(silent=True)
@@ -20,7 +34,7 @@ def postTask():
         return jsonify({"error": "Request body must be valid JSON"}), 400
 
     try:
-        task_payload = TaskAssignRequestModel(**json_data)
+        task_payload = TaskAssignRequestModel.model_validate(json_data)
     except ValidationError as e:
         return jsonify({
             "error": "Validation failed", 
@@ -28,11 +42,27 @@ def postTask():
         }), 400
 
 
+    # verify the target node exists and is available for work
+    try:
+        node_status = getNodeStatusById(task_payload.node_id)
+    except ValueError:
+        return jsonify({"error": "node does not exist"}), 404
+    except Exception as ex:
+        return jsonify({
+            "error": "node is unreachable",
+            "exception": str(ex)
+        }), 503
+
+    if node_status.status == NodeStatus.BUSY:
+        return jsonify({"error": "node is busy"}), 409
+    if node_status.status == NodeStatus.UNREACHABLE:
+        return jsonify({"error": "node is unavailable"}), 503
+
     full_task = TaskModel(
         id = str(uuid4()),
         node_id = task_payload.node_id,
         ticket = task_payload.ticket,
-        status = TaskStatus.IN_PROGRESS
+        status = TaskStatus.BUSY
     )
 
     # store in task map
@@ -58,7 +88,7 @@ def postTask():
 
     return jsonify({
         "status": "assigned",
-        "task": full_task.model_dump()
+        "task": full_task.to_json()
     }), 201
 
 
@@ -115,7 +145,7 @@ def getTask(id):
         report=status.report,
     )
 
-    return jsonify(fullTask.model_dump()), 200
+    return jsonify(fullTask.to_json()), 200
 
 
 
@@ -129,7 +159,7 @@ def convertNodeStatusToTaskStatus(status : NodeStatus) -> TaskStatus:
     """
     mapping = {
         NodeStatus.DONE: TaskStatus.DONE,
-        NodeStatus.IN_PROGRESS: TaskStatus.IN_PROGRESS,
+        NodeStatus.BUSY: TaskStatus.BUSY,
         NodeStatus.ERROR: TaskStatus.ERROR,
     }
     try:

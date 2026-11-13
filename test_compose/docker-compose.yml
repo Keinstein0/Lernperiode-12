@@ -1,0 +1,42 @@
+# UniSK test stack: the router plus one Claude Code node.
+#
+#   cd test_compose
+#   docker compose up --build
+#
+# Only the router is reachable from outside (port 5000), as agreed: Postman /
+# the client talk to the router, and the router talks to the node over the
+# internal compose network. Secrets come from test_compose/.env (see .env.example).
+
+name: unisk
+
+services:
+  router:
+    build: ../router
+    ports:
+      - "5000:5000"
+    # One worker process: the router keeps nodes and tasks in memory, and with
+    # several workers each process would have its own separate copy (a node
+    # registered in one would be "unknown" in the other). Threads are fine.
+    command: ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "1", "--threads", "8", "flaskr:create_app()"]
+    restart: unless-stopped
+
+  code-node:
+    build: ../nodes/code_node_v1
+    environment:
+      NODE_NAME: code-node-1
+      NODE_ID: code-node-1
+      NODE_HOST: code-node:5556                   # how the router reaches this node
+      NODE_TYPE: unisk:claude-coder-0.1
+      ROUTER_URL: http://router:5000/register/    # the trailing slash matters
+      WORKER: ${WORKER:-claude}                   # "fake" to test without Claude
+      CLAUDE_MODEL: ${CLAUDE_MODEL:-claude-haiku-5-5}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      GIT_TOKEN: ${GIT_TOKEN:-}                    # needed to push, even to public repos
+    volumes:
+      - node-data:/data                           # state + reports survive restarts
+    depends_on:
+      - router
+    restart: unless-stopped
+
+volumes:
+  node-data:

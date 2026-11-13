@@ -1,16 +1,24 @@
-from pydantic import BaseModel, Field
 from enum import Enum
+
+from .base import WireModel
 from .task import ReportModel
 
 class NodeStatus(str, Enum):
     DONE = "done"
-    IN_PROGRESS = "in progress"
+    BUSY = "busy"
     ERROR = "error"
     IDLE = "idle"
     UNREACHABLE = "unreachable" # status fetching impossible, node returned an error
 
+# Node internal store model
+class NodeStoreMetadataModel(WireModel):
+    name: str
+    id: str
+    host: str
+    type: str
+
 # Node as seen for the client
-class NodeModel(BaseModel):
+class NodeModel(WireModel):
     name: str
     id: str
     type: str
@@ -27,13 +35,6 @@ class NodeModel(BaseModel):
             status=status,
             task_id=task_id
         )
-
-# Node internal store model
-class NodeStoreMetadataModel(BaseModel):
-    name: str
-    id: str
-    host: str
-    type: str
 
 # Node response to status request
 class NodeStatusRequestResponse(NodeStoreMetadataModel):
