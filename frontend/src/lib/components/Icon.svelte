@@ -36,6 +36,8 @@
     <path d="M13 5h6v6m0-6-9 9"/><path d="M19 13v5a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h5"/>
   {:else if name === 'edit'}
     <path d="M12 20h9M4 16l-1 5 5-1L20 8a2.8 2.8 0 0 0-4-4L4 16Z"/>
+  {:else if name === 'trash'}
+    <path d="M3 6h18M8 6V4h8v2m3 0-1 15H6L5 6m5 4v7m4-7v7"/>
   {:else if name === 'plus'}
     <path d="M12 5v14M5 12h14"/>
   {:else if name === 'refresh'}
