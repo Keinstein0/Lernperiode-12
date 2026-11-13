@@ -1,56 +1,18 @@
-# sv
+# UniSK frontend — structure prototype
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+This is an intentionally plain, static SvelteKit UI prototype. Its information hierarchy borrows from GitHub's repository navigation and lists rather than using large decorative dashboards.
 
-## Creating a project
+## Pages
 
-If you're seeing this, you've probably already done this step. Congrats!
+- `/`: project index with concise project rows and a small workspace summary.
+- `/projects/website-redesign`: project view with conversation, agents grouped by department, and task list. Other sample project links use the same layout.
+- `/login`: placeholder for a future sign-in flow.
 
-```sh
-# create a new project
-npx sv create my-app
-```
-
-To recreate this project with the same configuration:
+## Run
 
 ```sh
-# recreate this project
-npx sv@1.1.1 create --template minimal --types ts --install npm frontend
-```
-
-## Adding features
-
-Add features to your project with `sv add`:
-
-```sh
-npx sv add
-```
-
-For example, to add Tailwind CSS:
-
-```sh
-npx sv add tailwindcss
-```
-
-## Developing
-
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
-
-```sh
+npm ci
 npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
 ```
 
-## Building
-
-To create a production version of your app:
-
-```sh
-npm run build
-```
-
-You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+The prototype uses local sample data. There is no backend integration, authentication, message submission, state mutation or new TypeScript functionality. Actions not yet implemented are visibly labelled as placeholders. Styling is plain CSS in `src/app.css`. No custom logo is included.
