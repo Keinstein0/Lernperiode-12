@@ -1,6 +1,6 @@
 <script lang="ts">
  import { page } from '$app/state';
- import { onMount, tick } from 'svelte';
+ import { tick } from 'svelte';
  import AppShell from './AppShell.svelte';
  import Icon from './Icon.svelte';
  import StatusIcon from './StatusIcon.svelte';
@@ -14,11 +14,42 @@
  let editing=$state(false); let editName=$state(''); let editDescription=$state(''); let editDetails=$state(''); let editRepository=$state(''); let savingProject=$state(false);
  let visibleTasks=$derived(projectTasks.filter(t=>(filter==='all'||t.status===filter) && (`${t.ticket.description} ${t.id} ${t['node-id']}`).toLowerCase().includes(query.toLowerCase())));
  let availableNodes=$derived(nodes.filter(n=>n.status==='idle'||n.status==='done'));
- async function reload() {
-  error='';try {const slug=page.params.project;const [p,t,n,m]=await Promise.all([api.getProject(slug),api.listProjectTasks(slug),api.getNodeStatuses(),api.listMessages(slug)]);
-  project=p;projectTasks=t;nodes=n;messages=m;if(p)branch=p.repository?'feature/frontend-prototype':'main';}
-  catch(e){error=err(e);}finally{loading=false;}
+ let requestVersion = 0;
+ async function reload(slug: string) {
+  const version = ++requestVersion;
+  loading = true;
+  error = '';
+  notice = '';
+  project = null;
+  projectTasks = [];
+  nodes = [];
+  messages = [];
+  selectedTask = null;
+  showNewTask = false;
+  editing = false;
+  messageText = '';
+  try {
+   const [p, t, n, m] = await Promise.all([
+    api.getProject(slug), api.listProjectTasks(slug), api.getNodeStatuses(), api.listMessages(slug)
+   ]);
+   if (version !== requestVersion) return;
+   project = p;
+   projectTasks = t;
+   nodes = n;
+   messages = m;
+   if (p) branch = p.repository ? 'feature/frontend-prototype' : 'main';
+  } catch (e) {
+   if (version === requestVersion) error = err(e);
+  } finally {
+   if (version === requestVersion) loading = false;
+  }
  }
+ // SvelteKit reuses this component when moving between /projects/[project] URLs.
+ // Track the route parameter so sidebar navigation always loads the selected project.
+ $effect(() => {
+  const slug = page.params.project;
+  if (slug) void reload(slug);
+ });
  const err=(e: unknown)=>e instanceof Error?e.message:String(e);
  function startEdit(){if(!project)return;editName=project.name;editDescription=project.description;editDetails=project.details;editRepository=project.repository??'';editing=true;}
  async function saveProject(){if(!project)return;savingProject=true;notice='';try{project=await api.updateProject(project.slug,{name:editName,description:editDescription,details:editDetails,repository:editRepository||null});editing=false;notice='Project updated';}catch(e){notice=err(e);}finally{savingProject=false;}}
@@ -29,7 +60,6 @@
  async function inspectTask(id:string){try{selectedTask=await api.getTask(id);}catch(e){notice=err(e);}}
  async function refreshTasks(){if(!project)return;try{projectTasks=await api.listProjectTasks(project.slug);nodes=await api.getNodeStatuses();if(selectedTask)selectedTask=await api.getTask(selectedTask.id);}catch(e){notice=err(e);}}
  async function simulateComplete(){if(!selectedTask)return;try{selectedTask=await api.advanceTask(selectedTask.id);await refreshTasks();notice='Task status refreshed';}catch(e){notice=err(e);}}
- onMount(()=>{void reload();});
 </script>
 <AppShell><div class="content-wrap project-content">
 {#if loading}<p class="muted-note" role="status">Loading project…</p>{:else if error}<p class="error-note" role="alert">{error}</p>{:else if project}
