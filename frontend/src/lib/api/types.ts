@@ -19,7 +19,10 @@ export interface ApiClient {
   listProjectTasks(slug: string): Promise<Task[]>; // Mock-only project association
   assignTicket(request: Assignment): Promise<{ id: string }>; // POST /assign
   createProject(input: ProjectInput): Promise<Project>; // Frontend-only mock endpoint
-  updateProject(slug: string, input: Partial<ProjectInput>): Promise<Project>; // Frontend-only mock endpoint
+  updateProject(slug: string, input: Partial<ProjectInput>): Promise<Project>;
+  deleteProject(slug: string): Promise<void>;
+  getSession(): Promise<Session | null>;
+  logout(): Promise<void>; // Frontend-only mock endpoint
   advanceTask(id: string): Promise<Task>; // Simulated status poll in mock only
   listProjects(): Promise<Project[]>; // Mock-only project endpoint
   getProject(slug: string): Promise<Project | null>;

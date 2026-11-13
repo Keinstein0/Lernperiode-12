@@ -3,7 +3,7 @@
 The frontend imports `api` from `src/lib/api/index.ts`. The exported client implements
 `ApiClient` from `types.ts` through `mock.ts`. **No HTTP requests are made.**
 All methods return Promises and return cloned data to simulate request/response boundaries.
-The mock stores ticket assignments, project edits, and conversation messages in memory; a full page reload resets them.
+The mock persists projects, tasks, messages and the simulated login session in browser `localStorage` (`unisk-mock-state-v2`). Data is browser-local and not shared across devices. Clear that key to reset fixtures.
 
 ## Covered client-to-router operations (interactions.md)
 
@@ -19,7 +19,7 @@ The shape of `Node`, `Task`, `Ticket`, and `Report` retains the hyphenated field
 specified in `interactions.md`. The mock status names are exactly `busy`, `idle`,
 `done`, and `error` for nodes, and `busy`, `done`, and `error` for tasks.
 
-`listProjects`, `getProject`, `createProject`, `updateProject`, `listProjectTasks`, `listMessages`, `sendMessage`, `getAgentReply`, `advanceTask`, and
+`getSession`, `logout`, `deleteProject`, `listProjects`, `getProject`, `createProject`, `updateProject`, `listProjectTasks`, `listMessages`, `sendMessage`, `getAgentReply`, `advanceTask`, and
 `listTasks` are **mock-only additions**: there is no defined router endpoint for them
 in `interactions.md` yet. The project list, chat, global agent directory, task creation,
 and task detail view all access the adapter instead of importing static fixture arrays.
@@ -33,9 +33,8 @@ a ticket with a project that does not yet have a repository. This field is **not
 of the documented `/assign` body and must be removed when wiring real HTTP requests.
 
 The project editor, task search/status filter, task completion simulation, and
-chat auto-replies are mock-only features. Simulated completion intentionally runs
-only after clicking **Simulate status update** in the task detail view.
+chat auto-replies are mock-only features. Newly assigned tickets complete automatically after roughly 15 seconds, when the next status request is made. The task detail manual simulation remains available. Agent directories and project task lists poll every four seconds while mounted. Chat commands of the form `task: <description>` assign a ticket to an available node. Project deletion removes associated tasks and conversation messages.
 
 When integrating the real router, implement `ApiClient` in a new adapter and change
 only `src/lib/api/index.ts` to export it. Authentication/storage/authorization rules
-will need to be designed before using real tokens. This stage does not persist tokens.
+will need to be designed before using real tokens. The app shell redirects visitors without a mock session to `/login` (client-side UI gating only). The mock persists a non-sensitive fake session token for UI testing only; never use it for real authentication or authorization.
