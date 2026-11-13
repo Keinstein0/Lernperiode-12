@@ -3,6 +3,6 @@ __pycache__
 **/__pycache__
 .env
 .git
-tests
+.pytest_cache
 Dockerfile
 docker-compose.yml
