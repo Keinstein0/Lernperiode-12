@@ -12,6 +12,20 @@ from ..store.baseTaskRepository import BaseTaskRepository
 bp = Blueprint("task", __name__, url_prefix='/task')
 
 
+@bp.route("/", methods=["GET"])
+def getTasks():
+    try:
+        task_repo: BaseTaskRepository = current_app.extensions['task_repo']
+        tasks = task_repo.get_all()
+    except Exception as ex:
+        return jsonify({
+            "error": "database failure",
+            "exception": str(ex)
+        }), 500
+
+    return jsonify([task.model_dump() for task in tasks]), 200
+
+
 @bp.route("/assign", methods=["POST"])
 def postTask():
     json_data = request.get_json(silent=True)
@@ -27,6 +41,22 @@ def postTask():
             "details": e.errors()
         }), 400
 
+
+    # verify the target node exists and is available for work
+    try:
+        node_status = getNodeStatusById(task_payload.node_id)
+    except ValueError:
+        return jsonify({"error": "node does not exist"}), 404
+    except Exception as ex:
+        return jsonify({
+            "error": "node is unreachable",
+            "exception": str(ex)
+        }), 503
+
+    if node_status.status == NodeStatus.IN_PROGRESS:
+        return jsonify({"error": "node is busy"}), 409
+    if node_status.status == NodeStatus.UNREACHABLE:
+        return jsonify({"error": "node is unavailable"}), 503
 
     full_task = TaskModel(
         id = str(uuid4()),
