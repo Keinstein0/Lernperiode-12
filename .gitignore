@@ -1,2 +1,9 @@
 __pycache__
 .vscode/settings.json
+
+# secrets for docker compose
+.env
+
+# node runtime data (state, reports, checkouts)
+nodes/**/data/
+nodes/**/work/

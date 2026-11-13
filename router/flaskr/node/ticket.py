@@ -19,11 +19,14 @@ def assignTicket(task: TaskModel) -> None:
     if not node:
         raise ValueError(f"Node '{task.node_id}' is not registered")
 
+    # The node checks that the identity block matches itself (403 if not),
+    # see interactions.md "ticket"
     response = requests.post(
         f"http://{node.host}/ticket",
         json={
-            "task_id": task.id,
-            "ticket": task.ticket.model_dump(mode="json"),
+            **node.to_json(),          # name, id, host, type
+            "task-id": task.id,
+            "ticket": task.ticket.to_json(),
         },
         timeout=5,
     )

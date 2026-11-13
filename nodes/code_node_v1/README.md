@@ -66,6 +66,7 @@ There's no router running in this setup, so the node logs "Registration failed â
 | `NODE_TYPE` | `unisk:claude-coder-0.1` | Image-style type tag |
 | `NODE_PORT` | `5556` | Port the node listens on |
 | `ROUTER_URL` | `http://127.0.0.1:2048/` | Where to register |
+| `GIT_TOKEN` | (none) | Git token used when a ticket brings no `credentials.git-token`. Needed to push, even to public repos |
 | `WORKER` | `claude` | `claude` or `fake` |
 | `CLAUDE_MODEL` | Claude Code's default | Model to use |
 | `MAX_TURNS` | `50` | Maximum number of agent turns per ticket |
@@ -122,6 +123,7 @@ Pydantic classes that describe the JSON the router sends: `Identity`, `Ticket`, 
 - **Why:** FastAPI uses them to check every incoming request automatically. A malformed ticket is rejected with `422` before any of our code runs.
 - **The `Kebab` base class** translates between Python names (`git_repo_url`) and the spec's JSON names (`git-repo-url`).
 - **`TASK_ID` pattern:** a task-id becomes a folder name and part of a branch name, so it may only contain letters, numbers, `-`, `_` and `.`. Without this, a task-id like `../../etc` could write outside the data folder.
+- **`Credentials`** come with each ticket from the router. If a ticket has no git token, the node falls back to its own `GIT_TOKEN` environment variable.
 - **`make_report()`** builds the report in exactly the spec's shape.
 
 ### 3. STATE (the `Slot` class)

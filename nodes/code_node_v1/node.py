@@ -73,6 +73,7 @@ IDENTITY = {
 }
 
 ROUTER_URL = os.getenv("ROUTER_URL", "http://127.0.0.1:2048/")
+# GIT_TOKEN (optional) is read in git_env(): used when a ticket brings no token
 WORKER = os.getenv("WORKER", "claude")                    # "claude" or "fake"
 CLAUDE_MODEL = os.getenv("CLAUDE_MODEL") or None          # None = CLI default
 MAX_TURNS = int(os.getenv("MAX_TURNS", "50"))
@@ -112,7 +113,8 @@ class Ticket(Kebab):
 
 
 class Credentials(Kebab):
-    """Passed by the router with each ticket. Kept in memory only."""
+    """Passed by the router with each ticket. Kept in memory only.
+    If the ticket has no git token, the node's own GIT_TOKEN env var is used."""
     anthropic_api_key: str | None = None
     git_token: str | None = None
     git_username: str = "x-access-token"
@@ -127,7 +129,7 @@ class TicketRequest(Identity):
 def make_report(repo_url: str, branch: str, files: list[str], description: str) -> dict:
     return {
         "finished-at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
-        "finished-by": IDENTITY["id"],
+        "finished-by-node-id": IDENTITY["id"],
         "git-repo-url": repo_url,
         "git-branch-id": branch,
         "files-of-interest": files,
@@ -211,8 +213,9 @@ def git_env(creds: Credentials) -> dict:
                GIT_AUTHOR_NAME=IDENTITY["name"], GIT_COMMITTER_NAME=IDENTITY["name"],
                GIT_AUTHOR_EMAIL=f"{IDENTITY['id']}@unisk.local",
                GIT_COMMITTER_EMAIL=f"{IDENTITY['id']}@unisk.local")
-    if creds.git_token:
-        basic = base64.b64encode(f"{creds.git_username}:{creds.git_token}".encode()).decode()
+    token = creds.git_token or os.getenv("GIT_TOKEN")   # ticket first, then node's env
+    if token:
+        basic = base64.b64encode(f"{creds.git_username}:{token}".encode()).decode()
         env.update(GIT_CONFIG_COUNT="1", GIT_CONFIG_KEY_0="http.extraHeader",
                    GIT_CONFIG_VALUE_0=f"Authorization: Basic {basic}")
     return env
@@ -256,8 +259,9 @@ def normalize_url(url: str) -> str:
     return "https://" + url
 
 
-async def prepare_workspace(task_id: str, ticket: Ticket, branch: str, env: dict) -> tuple[Path, str]:
-    """Clone the repo and get onto the working branch. Returns (path, base commit)."""
+async def prepare_workspace(task_id: str, ticket: Ticket, branch: str, env: dict) -> tuple[Path, str | None]:
+    """Clone the repo and get onto the working branch.
+    Returns (path, base commit), base is None for an empty repo."""
     path = WORK_DIR / task_id
     remove_dir(path)
     url = normalize_url(ticket.git_repo_url)
@@ -268,18 +272,25 @@ async def prepare_workspace(task_id: str, ticket: Ticket, branch: str, env: dict
         # No branch given: clone the default branch and make our own
         await git("clone", url, str(path), env=env)
         await git("checkout", "-b", branch, cwd=path, env=env)
-    base = (await git("rev-parse", "HEAD", cwd=path, env=env)).strip()
+    try:
+        base = (await git("rev-parse", "--verify", "HEAD", cwd=path, env=env)).strip()
+    except GitError:
+        base = None   # empty repo: no commits yet, so there's nothing to start from
     return path, base
 
 
-async def commit_and_push(path: Path, branch: str, base: str, task_id: str,
+async def commit_and_push(path: Path, branch: str, base: str | None, task_id: str,
                           summary: str, env: dict) -> list[str]:
     """Commit whatever the worker changed, push it, return the changed files."""
     await git("add", "-A", cwd=path, env=env)
     if (await git("diff", "--cached", "--name-only", cwd=path, env=env)).strip():
         title = (summary.strip().splitlines() or ["node work"])[0][:72]
         await git("commit", "-m", f"[{task_id}] {title}", cwd=path, env=env)
-    changed = (await git("diff", "--name-only", base, "HEAD", cwd=path, env=env)).splitlines()
+    if base:
+        changed = (await git("diff", "--name-only", base, "HEAD", cwd=path, env=env)).splitlines()
+    else:
+        # Empty repo: every tracked file is new (and none if nothing was committed)
+        changed = (await git("ls-files", cwd=path, env=env)).splitlines()
     if changed:
         await git("push", "origin", branch, cwd=path, env=env)
     return changed
@@ -376,7 +387,8 @@ WORKERS = {"claude": claude_worker, "fake": fake_worker}
 # ─────────────────────────────────────────────────────────────────────────────
 
 def redact(text: str, creds: Credentials) -> str:
-    for secret in (creds.git_token, creds.anthropic_api_key):
+    for secret in (creds.git_token, creds.anthropic_api_key,
+                   os.getenv("GIT_TOKEN"), os.getenv("ANTHROPIC_API_KEY")):
         if secret:
             text = text.replace(secret, "***")
     return text

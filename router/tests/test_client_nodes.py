@@ -39,20 +39,20 @@ def test_get_single_node_returns_correct_status(client, registered_node):
     assert body["id"] == registered_node.id
     assert body["name"] == registered_node.name
     assert body["status"] == "idle"
-    assert body["task_id"] is None
+    assert body["task-id"] is None
 
 
 def test_get_single_node_reflects_live_status_change(client, registered_node):
     """When the node picks up work, the queried status must follow."""
-    registered_node.status = "in progress"
+    registered_node.status = "busy"
     registered_node.current_task_id = "task-42"
 
     response = client.get(f"/node/{registered_node.id}")
 
     assert response.status_code == 200
     body = response.get_json()
-    assert body["status"] == "in progress"
-    assert body["task_id"] == "task-42"
+    assert body["status"] == "busy"
+    assert body["task-id"] == "task-42"
 
 
 def test_get_nonexisting_node_returns_404(client):

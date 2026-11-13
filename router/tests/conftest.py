@@ -26,9 +26,14 @@ class MockNode:
         GET  /status  -> current node status report
         POST /ticket  -> receives assigned tickets
 
+    It speaks the protocol from interactions.md: kebab-case JSON keys,
+    status values idle/busy/done/error, and /ticket rejects requests whose
+    identity block doesn't match the node (403), like the real node.
+
     Test hooks:
         responsive        if False, every request fails with a 500
-        status            node status string ("idle", "in progress", ...)
+        status            node status string ("idle", "busy", "done", "error")
+        report            report dict returned when status is done/error
         current_task_id   task id reported alongside the status
         received_tickets  list of ticket payloads posted to /ticket
         status_requests   number of GET /status requests received
@@ -40,6 +45,7 @@ class MockNode:
         self.type = node_type
         self.status = "idle"
         self.current_task_id = None
+        self.report = None
         self.responsive = True
         self.received_tickets = []
         self.status_requests = 0
@@ -51,14 +57,15 @@ class MockNode:
 
     # -- protocol ---------------------------------------------------------
 
+    def _identity(self):
+        return {"name": self.name, "id": self.id, "host": self.host, "type": self.type}
+
     def _status_report(self):
         return {
-            "name": self.name,
-            "id": self.id,
-            "host": self.host,
-            "type": self.type,
+            **self._identity(),
             "status": self.status,
-            "task_id": self.current_task_id,
+            "task-id": self.current_task_id,
+            "report": self.report if self.status in ("done", "error") else None,
         }
 
     def _make_handler(self):
@@ -93,8 +100,11 @@ class MockNode:
                     if not node.responsive:
                         self._send(500, {"error": "node is on fire"})
                         return
+                    if {k: payload.get(k) for k in node._identity()} != node._identity():
+                        self._send(403, {"detail": "identity mismatch"})
+                        return
                     node.received_tickets.append(payload)
-                    self._send(200, {"status": "accepted"})
+                    self._send(202, {"task-id": payload.get("task-id"), "status": "busy"})
                 else:
                     self._send(404, {"error": "not found"})
 
@@ -146,7 +156,7 @@ def register_node(client, node: MockNode):
 def post_assignment(client, node_id: str, ticket: dict):
     """POSTs a task assignment for `node_id` to the router."""
     return client.post("/task/assign", json={
-        "node_id": node_id,
+        "node-id": node_id,
         "ticket": ticket,
     })
 
@@ -162,8 +172,8 @@ def registered_node(client, mock_node):
 def ticket_payload():
     """A valid ticket body (TicketModel without the auto-generated timestamp)."""
     return {
-        "created_by_github_user_id": "octocat-42",
-        "git_repo_url": "https://github.com/example/repo",
-        "git_branch_id": "feature-branch",
+        "created-by": "octocat-42",
+        "git-repo-url": "https://github.com/example/repo",
+        "git-branch-id": "feature-branch",
         "description": "Refactor the widget spinner",
     }
