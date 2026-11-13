@@ -1,0 +1,13 @@
+$kind: http-request
+url: "{{base-url}}/register"
+method: POST
+body:
+  type: json
+  content: |-
+    {
+      "name": "node-primary-01",
+      "id": "node_abc123xyz",
+      "host": "192.168.1.50",
+      "type": "storage"
+    }
+order: 1000
