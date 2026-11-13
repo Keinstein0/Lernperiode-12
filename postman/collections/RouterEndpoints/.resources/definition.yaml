@@ -1,0 +1,5 @@
+$kind: collection
+variables:
+  base-url: ""
+  node-id: ""
+  task-id: ""
