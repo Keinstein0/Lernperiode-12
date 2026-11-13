@@ -40,3 +40,16 @@ Arbeitspakete bis 13.11.2026
 - [ ] Alex + Neo: (BBB): Testen router2node
 - [ ] Alex + Vincent + Timo: (BBB) Testen client2router 
 
+Arbeitspakete bis 20.11.2026
+
+Rieder AP:
+- [ ] Alex + Neo: Chat Ticket Interface in interactions.md definieren
+- [ ] Vincent+Timo: Frontend unit tests & bug fixes
+
+Morgen:
+- [X] Alex: Implementation Router Ticket Chat Interface
+- [X] Alex: Implementation Router Auth
+- [ ] Neo: Implementation Claude Node Ticket Chat Interface
+- [ ] Neo: Definieren organizer node
+- [ ] Vincent: Frontend implementation Chat Interface
+- [x] Timo: UNISK logo und generelles design erstellen (farbschema, fonts, logos, etc. )
