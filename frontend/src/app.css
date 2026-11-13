@@ -16,3 +16,23 @@
 .login-box button{justify-content:center}
 .back-home{justify-content:center}
 @media(max-width:700px){.sidebar-nav a{gap:7px}.conversation-message{gap:10px}.message-avatar{width:30px;height:30px}}
+
+/* Quiet circuit-board detail behind the workspace, not behind content surfaces. */
+.app-frame,.login-layout{position:relative;isolation:isolate;background:#0d1117}
+.app-frame::before,.login-layout::before{content:"";position:fixed;z-index:-1;inset:58px 0 0;pointer-events:none;background-image:url('/brand/circuit-pattern.svg');background-size:600px 440px;background-repeat:repeat;opacity:.095}
+.login-layout::before{inset:58px 0 0}
+.main-area,.sidebar{background:transparent}
+.topbar,.simple-header{position:relative;z-index:1;background:#010409}
+.brand-link{display:inline-flex;align-items:center;gap:10px;min-width:0;color:#e6edf3}
+.brand-link:hover{color:#fff}
+.brand-mark{display:block;flex:none;width:34px;height:34px}
+.topbar{gap:20px;padding-inline:26px}
+.topbar-divider{height:26px}
+.topbar-label{letter-spacing:.01em}
+.topbar-right{display:flex;align-items:center}
+.account-link{display:inline-flex;gap:9px;align-items:center;border:1px solid #30363d;border-radius:6px;padding:8px 11px;color:#c9d1d9;font-size:12px}
+.account-link:hover{background:#161b22;color:#f0f6fc}
+.simple-header{display:flex;align-items:center;padding:0 28px}
+.simple-header .brand-mark{width:30px;height:30px}
+@media(max-width:700px){.topbar{gap:12px;padding-inline:14px}.brand-mark{width:29px;height:29px}.topbar-divider,.topbar-label{display:none}.account-link{padding:7px}.account-link span{display:none}}
+@media(prefers-reduced-transparency:reduce){.app-frame::before,.login-layout::before{opacity:.06}}

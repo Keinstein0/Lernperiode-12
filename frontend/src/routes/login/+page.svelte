@@ -1,1 +1,16 @@
-<script>import Icon from '#lib/components/Icon.svelte';</script><div class="login-layout"><header class="simple-header"><a href="/">UniSK</a></header><main class="login-form"><h1>Sign in to UniSK</h1><div class="login-box"><button type="button" disabled><Icon name="github"/>Continue with GitHub</button></div><a class="back-home" href="/"><Icon name="arrow-left"/>Projects</a></main></div>
+<script>
+  import Icon from '#lib/components/Icon.svelte';
+</script>
+<div class="login-layout">
+  <header class="simple-header">
+    <a href="/" class="brand-link" aria-label="UniSK home">
+      <img src="/brand/unisk-mark.svg" alt="" class="brand-mark" width="30" height="30" />
+      <span>UniSK</span>
+    </a>
+  </header>
+  <main class="login-form">
+    <h1>Sign in to UniSK</h1>
+    <div class="login-box"><button type="button" disabled><Icon name="github"/>Continue with GitHub</button></div>
+    <a class="back-home" href="/"><Icon name="arrow-left"/>Projects</a>
+  </main>
+</div>
