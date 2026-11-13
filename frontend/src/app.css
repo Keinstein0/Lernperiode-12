@@ -60,3 +60,17 @@
   .sidebar{border-bottom:0}
   .sidebar::after{content:none}
 }
+
+/* Mock router interactions: lightweight native controls. */
+button{cursor:pointer}button:disabled{cursor:not-allowed;opacity:.55}
+.secondary-button,.primary-button{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:1px solid #30363d;border-radius:6px;padding:8px 12px;font-size:12px;font-weight:600;color:#c9d1d9;background:#21262d}
+.primary-button{background:#238636;color:#fff;border-color:#2ea043}.secondary-button:hover{background:#30363d}.primary-button:hover{background:#2ea043}
+.selectable-row{width:100%;text-align:left;color:inherit;background:transparent;border-left:0;border-right:0;border-top:0;cursor:pointer}.selectable-row:hover{background:rgba(139,148,158,.06)}
+.simple-row.selectable-row{display:flex;width:100%;padding-inline:5px}.task-item.selectable-row{display:flex;width:100%}
+.header-actions,.form-actions{display:flex;align-items:center;gap:12px}.form-actions{justify-content:flex-end;margin-top:12px}
+.ticket-form{padding:20px 22px;border-bottom:1px solid #30363d;display:grid;gap:10px}
+.ticket-form label{font-size:12px;color:#8b949e}.ticket-form textarea,.ticket-form input,.ticket-form select{width:100%;background:#0d1117;border:1px solid #30363d;color:#e6edf3;border-radius:6px;padding:10px;font:inherit;font-size:13px}
+.ticket-fields{display:grid;grid-template-columns:1fr 1fr;gap:16px}.ticket-fields>div{display:grid;gap:8px}
+.muted-note,.error-note,.action-note{font-size:13px;margin:15px 0;color:#8b949e}.error-note{color:#f85149}.action-note{color:#7ee787}
+.task-detail{margin-top:22px;border:1px solid #30363d;border-radius:6px;padding:20px}.task-detail-heading{display:flex;align-items:center;justify-content:space-between;margin-bottom:15px}.task-detail h2{font-size:15px}.task-detail p{font-size:13px;line-height:1.6}.task-detail dl{display:grid;grid-template-columns:140px 1fr;gap:12px;font-size:12px;margin-top:17px}.task-detail dt{color:#8b949e}.task-detail dd{margin:0;overflow-wrap:anywhere}
+@media(max-width:700px){.ticket-fields{grid-template-columns:1fr}.tasks-header{gap:10px}.header-actions{flex-wrap:wrap;justify-content:flex-end}}

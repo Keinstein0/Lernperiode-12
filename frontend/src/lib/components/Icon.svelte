@@ -28,6 +28,10 @@
     <path d="M12 3a9 9 0 0 1 4.5 1.2M19 7a9 9 0 0 1 1.8 4.5M20 15a9 9 0 0 1-3 4M13 21a9 9 0 0 1-4.5-1.2M5 17a9 9 0 0 1-1.8-4.5M4 9a9 9 0 0 1 3-4"/>
   {:else if name === 'circle-pause'}
     <circle cx="12" cy="12" r="9"/><path d="M10 9v6m4-6v6"/>
+  {:else if name === 'plus'}
+    <path d="M12 5v14M5 12h14"/>
+  {:else if name === 'refresh'}
+    <path d="M20 11a8 8 0 0 0-14-5L4 8m0-5v5h5M4 13a8 8 0 0 0 14 5l2-2m0 5v-5h-5"/>
   {:else if name === 'clock'}
     <circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>
   {:else if name === 'calendar'}
