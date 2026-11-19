@@ -44,6 +44,7 @@ Arbeitspakete bis 20.11.2026
 
 Rieder AP:
 - [ ] Alex + Neo: Chat Ticket Interface in interactions.md definieren
+- [ ] Neo: Roblox Node aufsetzen für final-demo
 - [ ] Vincent+Timo: Frontend unit tests & bug fixes
 
 Morgen:
