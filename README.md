@@ -43,14 +43,13 @@ Arbeitspakete bis 13.11.2026
 Arbeitspakete bis 20.11.2026
 
 Rieder AP:
-- [ ] Alex: A2A Dokumentation Verstehen
-- [ ] Neo+Vincent: Node+Client Testen
-- [ ] Timo: Frontend design verbessern
+- [X] Alex: A2A Dokumentation Verstehen
+- [X] Neo+Vincent: Node+Client Testen
+- [X] Timo: Frontend design verbessern
 
 Morgen:
-- [X] Alex: Implementation Router Ticket Chat Interface
-- [X] Alex: Implementation Router Auth
-- [ ] Neo: Implementation Claude Node Ticket Chat Interface
-- [ ] Neo: Definieren organizer node
-- [ ] Vincent: Frontend implementation Chat Interface
-- [x] Timo: UNISK logo und generelles design erstellen (farbschema, fonts, logos, etc. )
+- [X] Alle: Standarts Recherchieren
+- [X] Alle: Definieren Protokoll Nodes
+- [X] Alle: Definieren Protokoll Router
+- [X] Alle: Definieren Protokoll Client
+
