@@ -53,3 +53,17 @@ Morgen:
 - [X] Alle: Definieren Protokoll Router
 - [X] Alle: Definieren Protokoll Client
 
+Arbeitspakete bis 27.11.2026
+Rieder:
+- [ ] Alex: Aufsetzen neuer Router als ASP.NET core web api, dependencies installieren
+- [ ] Neo, Vincent, Timo: Neue architektur vorsichtig durchlesen und nütige änderungen klar definieren
+
+Morgen:
+- [ ] Alex: Rohimplementation MCP Client Endpunkte
+- [ ] Alex: Rohimplementation A2A Pipeline
+- [ ] Neo: Implementation mock endpunkte
+- [ ] Neo: (so weit wie möglich) mock endpunkte mit code hinterlegen
+- [ ] Vincent: Mock MCP server bauen (lassen)
+- [ ] Vincent+Timo: Erstellen von mockups des neuen UI
+- [ ] Timo: neues UI auf usability bewerten
+
