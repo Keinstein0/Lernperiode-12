@@ -4,11 +4,11 @@ using newrouter.services;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddHttpContextAccessor();
-builder.Services.AddHttpClient<AuthService>();
-builder.Services.AddHttpClient<A2AProxyService>();
-builder.Services.AddSingleton<NodeRegistryService>();
-builder.Services.AddSingleton<EmbeddingService>();
-builder.Services.AddSingleton<TaskRoutingService>();
+builder.Services.AddHttpClient<IAuthService, AuthService>();
+builder.Services.AddHttpClient<IA2AProxyService, A2AProxyService>();
+builder.Services.AddSingleton<INodeRegistryService, NodeRegistryService>();
+builder.Services.AddSingleton<IEmbeddingService, EmbeddingService>();
+builder.Services.AddSingleton<ITaskRoutingService, TaskRoutingService>();
 builder.Services.AddAuthorization();
 
 builder.Services

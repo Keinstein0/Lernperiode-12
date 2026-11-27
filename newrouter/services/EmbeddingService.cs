@@ -4,7 +4,7 @@ using A2A;
 
 namespace newrouter.services;
 
-public sealed class EmbeddingService
+public sealed class EmbeddingService : IEmbeddingService
 {
     private const int Dimensions = 128;
 

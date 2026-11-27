@@ -11,9 +11,9 @@ public sealed class DiscoveryMcpServer
 {
     [McpServerTool(Name = "get_nodes"), Description("Filters nodes the caller is allowed to read and ranks them by embedding cosine similarity against query.")]
     public static async Task<IReadOnlyList<RankedNodeResult>> GetNodesAsync(
-        AuthService authService,
-        NodeRegistryService registry,
-        EmbeddingService embeddingService,
+        IAuthService authService,
+        INodeRegistryService registry,
+        IEmbeddingService embeddingService,
         string query,
         string? capability_filter = null,
         CancellationToken ct = default)
@@ -51,8 +51,8 @@ public sealed class DiscoveryMcpServer
 
     [McpServerTool(Name = "get_node"), Description("Checks read permission on node_id and returns its AgentCard, status, capabilities, and workspace modes.")]
     public static async Task<NodeModel?> GetNodeAsync(
-        AuthService authService,
-        NodeRegistryService registry,
+        IAuthService authService,
+        INodeRegistryService registry,
         string node_id,
         CancellationToken ct = default)
     {
@@ -62,9 +62,9 @@ public sealed class DiscoveryMcpServer
 
     [McpServerTool(Name = "get_extended_agent_card"), Description("Checks read permission and proxies A2A GetExtendedAgentCard to node_id.")]
     public static async Task<AgentCard> GetExtendedAgentCardAsync(
-        AuthService authService,
-        NodeRegistryService registry,
-        A2AProxyService a2aProxy,
+        IAuthService authService,
+        INodeRegistryService registry,
+        IA2AProxyService a2aProxy,
         string node_id,
         CancellationToken ct = default)
     {

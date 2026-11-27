@@ -3,7 +3,7 @@ using newrouter.models;
 
 namespace newrouter.services;
 
-public sealed class NodeRegistryService
+public sealed class NodeRegistryService : INodeRegistryService
 {
     private readonly ConcurrentDictionary<string, NodeModel> _nodes = new(StringComparer.Ordinal);
     private readonly TimeSpan _heartbeatTimeout;

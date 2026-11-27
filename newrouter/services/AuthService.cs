@@ -6,7 +6,7 @@ using newrouter.models;
 
 namespace newrouter.services;
 
-public sealed class AuthService
+public sealed class AuthService : IAuthService
 {
     private readonly HttpClient _http;
     private readonly IHttpContextAccessor _httpContextAccessor;

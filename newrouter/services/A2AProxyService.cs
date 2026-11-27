@@ -6,12 +6,12 @@ using A2A;
 
 namespace newrouter.services;
 
-public sealed class A2AProxyService
+public sealed class A2AProxyService : IA2AProxyService
 {
     private readonly HttpClient _http;
-    private readonly AuthService _authService;
+    private readonly IAuthService _authService;
 
-    public A2AProxyService(HttpClient http, AuthService authService)
+    public A2AProxyService(HttpClient http, IAuthService authService)
     {
         _http = http;
         _authService = authService;

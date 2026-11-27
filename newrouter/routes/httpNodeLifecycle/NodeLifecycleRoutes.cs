@@ -18,9 +18,9 @@ public static class NodeLifecycleRoutes
 
     private static async Task<IResult> RegisterAsync(
         [FromBody] RegisterNodeRequest request,
-        AuthService authService,
-        NodeRegistryService registry,
-        EmbeddingService embeddingService,
+        IAuthService authService,
+        INodeRegistryService registry,
+        IEmbeddingService embeddingService,
         CancellationToken ct)
     {
         var authNode = await authService.RegisterNodeAsync(request.NodeId, ct);
@@ -47,8 +47,8 @@ public static class NodeLifecycleRoutes
     private static IResult HeartbeatAsync(
         HttpContext httpContext,
         [FromBody] HeartbeatRequest request,
-        AuthService authService,
-        NodeRegistryService registry)
+        IAuthService authService,
+        INodeRegistryService registry)
     {
         var authHeader = httpContext.Request.Headers.Authorization.ToString();
         if (string.IsNullOrWhiteSpace(authHeader) ||

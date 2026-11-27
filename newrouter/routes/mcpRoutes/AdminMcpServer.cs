@@ -10,20 +10,20 @@ public sealed class AdminMcpServer
 {
     [McpServerTool(Name = "admin_list_nodes"), Description("Requires admin caller; lists all node identities and permission grants from Auth Node.")]
     public static Task<IReadOnlyList<NodePermissionModel>> ListNodesAsync(
-        AuthService authService,
+        IAuthService authService,
         CancellationToken ct = default) =>
         authService.ListNodesAsync(ct);
 
     [McpServerTool(Name = "admin_get_node"), Description("Requires admin caller; inspects one node's identity and permissions.")]
     public static Task<NodePermissionModel?> GetNodeAsync(
-        AuthService authService,
+        IAuthService authService,
         string target_node_id,
         CancellationToken ct = default) =>
         authService.GetNodeAsync(target_node_id, ct);
 
     [McpServerTool(Name = "admin_update_node_permissions"), Description("Requires admin caller; adds or removes permitted target nodes for target_node_id.")]
     public static Task<NodePermissionModel?> UpdateNodePermissionsAsync(
-        AuthService authService,
+        IAuthService authService,
         string target_node_id,
         IReadOnlyList<string>? add_allowed_nodes = null,
         IReadOnlyList<string>? remove_allowed_nodes = null,
@@ -32,7 +32,7 @@ public sealed class AdminMcpServer
 
     [McpServerTool(Name = "admin_promote_node"), Description("Requires admin caller and confirm=true; grants admin privileges to target_node_id.")]
     public static Task<NodePermissionModel?> PromoteNodeAsync(
-        AuthService authService,
+        IAuthService authService,
         string target_node_id,
         bool confirm = false,
         CancellationToken ct = default)
@@ -47,9 +47,9 @@ public sealed class AdminMcpServer
 
     [McpServerTool(Name = "admin_delete_node"), Description("Requires admin caller and confirm=true; revokes node identity and evicts it from active routing.")]
     public static async Task<bool> DeleteNodeAsync(
-        AuthService authService,
-        NodeRegistryService registry,
-        TaskRoutingService taskRouting,
+        IAuthService authService,
+        INodeRegistryService registry,
+        ITaskRoutingService taskRouting,
         string target_node_id,
         bool confirm = false,
         CancellationToken ct = default)

@@ -3,7 +3,7 @@ using newrouter.models;
 
 namespace newrouter.services;
 
-public sealed class TaskRoutingService
+public sealed class TaskRoutingService : ITaskRoutingService
 {
     private readonly ConcurrentDictionary<string, TaskRouteEntry> _routes = new(StringComparer.Ordinal);
 

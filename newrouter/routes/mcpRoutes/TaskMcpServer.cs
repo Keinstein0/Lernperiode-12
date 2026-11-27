@@ -10,10 +10,10 @@ public sealed class TaskMcpServer
 {
     [McpServerTool(Name = "send_task"), Description("Checks invoke permission, proxies A2A SendMessage to node_id, and records taskId -> node_id.")]
     public static async Task<JsonElement> SendTaskAsync(
-        AuthService authService,
-        NodeRegistryService registry,
-        TaskRoutingService taskRouting,
-        A2AProxyService a2aProxy,
+        IAuthService authService,
+        INodeRegistryService registry,
+        ITaskRoutingService taskRouting,
+        IA2AProxyService a2aProxy,
         string node_id,
         JsonElement message,
         JsonElement? configuration = null,
@@ -36,10 +36,10 @@ public sealed class TaskMcpServer
 
     [McpServerTool(Name = "send_task_stream"), Description("Checks invoke permission, proxies A2A SendStreamingMessage to node_id, and streams SSE events.")]
     public static async Task<IReadOnlyList<string>> SendTaskStreamAsync(
-        AuthService authService,
-        NodeRegistryService registry,
-        TaskRoutingService taskRouting,
-        A2AProxyService a2aProxy,
+        IAuthService authService,
+        INodeRegistryService registry,
+        ITaskRoutingService taskRouting,
+        IA2AProxyService a2aProxy,
         string node_id,
         JsonElement message,
         JsonElement? configuration = null,
@@ -61,10 +61,10 @@ public sealed class TaskMcpServer
 
     [McpServerTool(Name = "get_task"), Description("Resolves node_id for task_id, verifies read permission, and proxies A2A GetTask.")]
     public static async Task<JsonElement> GetTaskAsync(
-        AuthService authService,
-        NodeRegistryService registry,
-        TaskRoutingService taskRouting,
-        A2AProxyService a2aProxy,
+        IAuthService authService,
+        INodeRegistryService registry,
+        ITaskRoutingService taskRouting,
+        IA2AProxyService a2aProxy,
         string task_id,
         int? historyLength = null,
         CancellationToken ct = default)
@@ -81,10 +81,10 @@ public sealed class TaskMcpServer
 
     [McpServerTool(Name = "subscribe_task"), Description("Resolves node_id for task_id, verifies read permission, and proxies A2A SubscribeToTask.")]
     public static async Task<IReadOnlyList<string>> SubscribeTaskAsync(
-        AuthService authService,
-        NodeRegistryService registry,
-        TaskRoutingService taskRouting,
-        A2AProxyService a2aProxy,
+        IAuthService authService,
+        INodeRegistryService registry,
+        ITaskRoutingService taskRouting,
+        IA2AProxyService a2aProxy,
         string task_id,
         CancellationToken ct = default)
     {
@@ -106,10 +106,10 @@ public sealed class TaskMcpServer
 
     [McpServerTool(Name = "cancel_task"), Description("Resolves node_id for task_id, verifies invoke permission, and proxies A2A CancelTask.")]
     public static async Task<JsonElement> CancelTaskAsync(
-        AuthService authService,
-        NodeRegistryService registry,
-        TaskRoutingService taskRouting,
-        A2AProxyService a2aProxy,
+        IAuthService authService,
+        INodeRegistryService registry,
+        ITaskRoutingService taskRouting,
+        IA2AProxyService a2aProxy,
         string task_id,
         CancellationToken ct = default)
     {
