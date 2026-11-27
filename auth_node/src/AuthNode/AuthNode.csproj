@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <InvariantGlobalization>true</InvariantGlobalization>
+
+    <!-- Native AOT: compiled to a single native binary, no JIT, no runtime reflection -->
+    <PublishAot>true</PublishAot>
+    <!-- Fail the build on anything that isn't trim/AOT safe -->
+    <IsAotCompatible>true</IsAotCompatible>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Plain ADO.NET over SQLite: hand-written SQL, no ORM, no reflection -->
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.15" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="AuthNode.Tests" />
+  </ItemGroup>
+
+</Project>
