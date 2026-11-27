@@ -17,12 +17,29 @@ public static class NodeLifecycleRoutes
     }
 
     private static async Task<IResult> RegisterAsync(
+        HttpContext httpContext,
         [FromBody] RegisterNodeRequest request,
         IAuthService authService,
         INodeRegistryService registry,
         IEmbeddingService embeddingService,
+        IConfiguration configuration,
         CancellationToken ct)
     {
+        var expectedRegToken = configuration["RouterAuth:RegistrationToken"];
+        if (!string.IsNullOrWhiteSpace(expectedRegToken))
+        {
+            var providedRegToken = httpContext.Request.Headers["X-Registration-Token"].ToString();
+            if (!string.Equals(providedRegToken, expectedRegToken, StringComparison.Ordinal))
+            {
+                return TypedResults.Unauthorized();
+            }
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.NodeId) && registry.GetNode(request.NodeId) is not null)
+        {
+            return TypedResults.Conflict(new { error = $"Node '{request.NodeId}' is already registered." });
+        }
+
         var authNode = await authService.RegisterNodeAsync(request.NodeId, ct);
         var (routerToken, expiresAt) = authService.IssueRouterNodeToken(authNode.NodeId);
         var embedding = embeddingService.ComputeAgentCardEmbedding(request.AgentCard);
