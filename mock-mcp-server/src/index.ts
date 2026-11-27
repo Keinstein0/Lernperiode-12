@@ -2,6 +2,7 @@ import express, { type Request, type Response } from 'express';
 import cors from 'cors';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
+import { registerDiscoveryTools } from './tools/discovery.js';
 
 const PORT = Number(process.env.PORT ?? 3333);
 
@@ -16,7 +17,7 @@ function createServer(): McpServer {
     version: '0.1.0',
   });
 
-  // Tools are registered in later steps.
+  registerDiscoveryTools(server);
 
   return server;
 }
