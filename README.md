@@ -61,8 +61,8 @@ Rieder:
 Morgen:
 - [ ] Alex: Rohimplementation MCP Client Endpunkte
 - [ ] Alex: Rohimplementation A2A Pipeline
-- [ ] Neo: Implementation mock endpunkte
-- [ ] Neo: (so weit wie möglich) mock endpunkte mit code hinterlegen
+- [ ] Neo: Herunterladen und testen bereits existierende A2A harnesses (https://github.com/shashikanth-gs/a2a-wrapper)
+- [ ] Neo: Projekt für auth node initialisieren
 - [ ] Vincent: Mock MCP server bauen (lassen)
 - [ ] Vincent+Timo: Erstellen von mockups des neuen UI
 - [ ] Timo: neues UI auf usability bewerten
