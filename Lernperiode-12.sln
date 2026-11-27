@@ -5,6 +5,8 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "newrouter", "newrouter\newrouter.csproj", "{108CDDDC-4A38-4BD5-BD40-76FFE3E3EBFF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "newrouter.Tests", "newrouter.Tests\newrouter.Tests.csproj", "{1A3435BA-5356-49C2-8E91-2549A07E3B07}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -18,5 +20,9 @@ Global
 		{108CDDDC-4A38-4BD5-BD40-76FFE3E3EBFF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{108CDDDC-4A38-4BD5-BD40-76FFE3E3EBFF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{108CDDDC-4A38-4BD5-BD40-76FFE3E3EBFF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1A3435BA-5356-49C2-8E91-2549A07E3B07}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1A3435BA-5356-49C2-8E91-2549A07E3B07}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1A3435BA-5356-49C2-8E91-2549A07E3B07}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1A3435BA-5356-49C2-8E91-2549A07E3B07}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
