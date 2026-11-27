@@ -18,7 +18,7 @@ var app = builder.Build();
 app.UseAuthorization();
 
 // Only the MCP endpoint is mapped—no redundant /api/items REST routes
-app.MapMcp("/mcp").RequireAuthorization();
+app.MapMcp("/mcp");
 
 app.Run();
 
