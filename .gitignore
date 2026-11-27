@@ -7,3 +7,8 @@ __pycache__
 # node runtime data (state, reports, checkouts)
 nodes/**/data/
 nodes/**/work/
+newrouter/bin/Debug
+newrouter/obj
+newrouter/obj/Debug/net8.0
+newrouter/obj/Debug/net8.0/newrouter.AssemblyInfo.cs
+newrouter/obj/Debug/net8.0/newrouter.AssemblyInfoInputs.cache
