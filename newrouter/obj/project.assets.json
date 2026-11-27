@@ -2,6 +2,26 @@
   "version": 3,
   "targets": {
     "net8.0": {
+      "A2A/1.0.0-preview4": {
+        "type": "package",
+        "dependencies": {
+          "Microsoft.Extensions.AI.Abstractions": "10.11.0",
+          "Microsoft.Extensions.Logging.Abstractions": "10.0.13",
+          "System.Linq.AsyncEnumerable": "10.0.13",
+          "System.Net.ServerSentEvents": "10.0.13",
+          "System.Text.Json": "10.0.13"
+        },
+        "compile": {
+          "lib/net8.0/A2A.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net8.0/A2A.dll": {
+            "related": ".xml"
+          }
+        }
+      },
       "Microsoft.AspNetCore.OpenApi/8.0.8": {
         "type": "package",
         "dependencies": {
@@ -385,6 +405,22 @@
           "buildTransitive/net8.0/_._": {}
         }
       },
+      "System.Linq.AsyncEnumerable/10.0.13": {
+        "type": "package",
+        "compile": {
+          "lib/net8.0/System.Linq.AsyncEnumerable.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net8.0/System.Linq.AsyncEnumerable.dll": {
+            "related": ".xml"
+          }
+        },
+        "build": {
+          "buildTransitive/net8.0/_._": {}
+        }
+      },
       "System.Net.ServerSentEvents/10.0.14": {
         "type": "package",
         "compile": {
@@ -446,6 +482,23 @@
     }
   },
   "libraries": {
+    "A2A/1.0.0-preview4": {
+      "sha512": "UPx11e3owpRJyHUfAK3Ipo2t2t8baQ+5eXOSDVQZBb3JhyKZpYafP6q6l3C3ZRvMtaqZsGUFgQufyKaA3T3aOg==",
+      "type": "package",
+      "path": "a2a/1.0.0-preview4",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "README.md",
+        "a2a.1.0.0-preview4.nupkg.sha512",
+        "a2a.nuspec",
+        "lib/net10.0/A2A.dll",
+        "lib/net10.0/A2A.xml",
+        "lib/net8.0/A2A.dll",
+        "lib/net8.0/A2A.xml",
+        "logo.png"
+      ]
+    },
     "Microsoft.AspNetCore.OpenApi/8.0.8": {
       "sha512": "wNHhohqP8rmsQ4UhKbd6jZMD6l+2Q/+DvRBT0Cgqeuglr13aF6sSJWicZKCIhZAUXzuhkdwtHVc95MlPlFk0dA==",
       "type": "package",
@@ -1253,6 +1306,35 @@
         "useSharedDesignerContext.txt"
       ]
     },
+    "System.Linq.AsyncEnumerable/10.0.13": {
+      "sha512": "skRb6dZfRrKFM2jCrYm1XNipmvEtmo07heailn0mQhWD5BuaNjrjaD0tdf7HcTgODJVf6rlYfjPXCrHpXPDb4Q==",
+      "type": "package",
+      "path": "system.linq.asyncenumerable/10.0.13",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "Icon.png",
+        "PACKAGE.md",
+        "THIRD-PARTY-NOTICES.TXT",
+        "buildTransitive/net461/System.Linq.AsyncEnumerable.targets",
+        "buildTransitive/net462/_._",
+        "buildTransitive/net8.0/_._",
+        "buildTransitive/netcoreapp2.0/System.Linq.AsyncEnumerable.targets",
+        "lib/net10.0/System.Linq.AsyncEnumerable.dll",
+        "lib/net10.0/System.Linq.AsyncEnumerable.xml",
+        "lib/net462/System.Linq.AsyncEnumerable.dll",
+        "lib/net462/System.Linq.AsyncEnumerable.xml",
+        "lib/net8.0/System.Linq.AsyncEnumerable.dll",
+        "lib/net8.0/System.Linq.AsyncEnumerable.xml",
+        "lib/net9.0/System.Linq.AsyncEnumerable.dll",
+        "lib/net9.0/System.Linq.AsyncEnumerable.xml",
+        "lib/netstandard2.0/System.Linq.AsyncEnumerable.dll",
+        "lib/netstandard2.0/System.Linq.AsyncEnumerable.xml",
+        "system.linq.asyncenumerable.10.0.13.nupkg.sha512",
+        "system.linq.asyncenumerable.nuspec",
+        "useSharedDesignerContext.txt"
+      ]
+    },
     "System.Net.ServerSentEvents/10.0.14": {
       "sha512": "PXOWnDxC7ZbrVZjRKij/lGi3LB6tlrT1D4Sr2poxONc2f35PiIneqSRCUREyWo+xONJIvdiHMmskKHldmBojgg==",
       "type": "package",
@@ -1394,6 +1476,7 @@
   },
   "projectFileDependencyGroups": {
     "net8.0": [
+      "A2A >= 1.0.0-preview4",
       "Microsoft.AspNetCore.OpenApi >= 8.0.8",
       "ModelContextProtocol.AspNetCore >= 2.4.0",
       "Swashbuckle.AspNetCore >= 6.4.0"
@@ -1443,6 +1526,10 @@
       "net8.0": {
         "targetAlias": "net8.0",
         "dependencies": {
+          "A2A": {
+            "target": "Package",
+            "version": "[1.0.0-preview4, )"
+          },
           "Microsoft.AspNetCore.OpenApi": {
             "target": "Package",
             "version": "[8.0.8, )"
