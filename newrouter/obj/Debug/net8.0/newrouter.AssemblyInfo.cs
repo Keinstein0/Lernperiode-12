@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("newrouter")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+21c5c1ac2db41ebf64d62d1a413bc0fc31c23c5e")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+78f27d55cace76d15940a3cc6a0a22e86d519b1f")]
 [assembly: System.Reflection.AssemblyProductAttribute("newrouter")]
 [assembly: System.Reflection.AssemblyTitleAttribute("newrouter")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
