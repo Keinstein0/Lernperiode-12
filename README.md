@@ -63,7 +63,7 @@ Morgen:
 - [ ] Alex: Rohimplementation A2A Pipeline
 - [ ] Neo: Herunterladen und testen bereits existierende A2A harnesses (https://github.com/shashikanth-gs/a2a-wrapper)
 - [ ] Neo: Projekt für auth node initialisieren
-- [ ] Vincent: Mock MCP server bauen (lassen)
+- [X] Vincent: Mock MCP server bauen
 - [ ] Vincent+Timo: Erstellen von mockups des neuen UI
 - [ ] Timo: neues UI auf usability bewerten
 
