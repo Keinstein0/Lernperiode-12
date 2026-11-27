@@ -1,0 +1,25 @@
+services:
+  newrouter:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://+:8080
+
+      # Auth Node connection
+      AuthNode__BaseUrl: http://auth-node:5100
+      AuthNode__ServiceToken: dev-router-service-token
+
+      # Router-issued B2 node tokens
+      RouterAuth__SigningKey: dev-router-signing-key-change-in-production-32chars!
+      RouterAuth__RegistrationToken: dev-registration-token
+      RouterAuth__Issuer: uniskv2-router
+      RouterAuth__Audience: uniskv2-b2-nodes
+      RouterAuth__TokenLifetimeMinutes: "60"
+
+      # Node registry liveness
+      Registry__HeartbeatTimeoutSeconds: "90"
+    restart: unless-stopped

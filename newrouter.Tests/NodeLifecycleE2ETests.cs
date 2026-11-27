@@ -42,7 +42,8 @@ public class NodeLifecycleE2ETests : IClassFixture<WebApplicationFactory<Program
             });
         }).CreateClient();
 
-        // 1. Register
+        // 1. Register (with registration token)
+        client.DefaultRequestHeaders.Add("X-Registration-Token", "dev-registration-token");
         var regReq = new RegisterNodeRequest(
             "b2-e2e",
             "http://b2-e2e:8080",
@@ -52,6 +53,10 @@ public class NodeLifecycleE2ETests : IClassFixture<WebApplicationFactory<Program
 
         var regResp = await client.PostAsJsonAsync("/nodes/register", regReq);
         Assert.Equal(HttpStatusCode.OK, regResp.StatusCode);
+
+        // Duplicate NodeId -> 409 Conflict
+        var dupResp = await client.PostAsJsonAsync("/nodes/register", regReq);
+        Assert.Equal(HttpStatusCode.Conflict, dupResp.StatusCode);
 
         var regBody = await regResp.Content.ReadFromJsonAsync<RegisterNodeResponse>();
         Assert.NotNull(regBody);
@@ -97,6 +102,7 @@ public class NodeLifecycleE2ETests : IClassFixture<WebApplicationFactory<Program
         });
 
         // Registration fails when Auth Node is down
+        client.DefaultRequestHeaders.Add("X-Registration-Token", "dev-registration-token");
         var regReq = new RegisterNodeRequest("b2-new", "http://b2-new:8080", null, null, new AgentCard { Name = "New", Description = "New" });
         var regResp = await client.PostAsJsonAsync("/nodes/register", regReq);
         Assert.Equal(HttpStatusCode.InternalServerError, regResp.StatusCode);
@@ -105,5 +111,19 @@ public class NodeLifecycleE2ETests : IClassFixture<WebApplicationFactory<Program
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", "valid-tok");
         var hbResp = await client.PostAsJsonAsync("/nodes/heartbeat", new HeartbeatRequest("b2-existing", NodeStatus.Free));
         Assert.Equal(HttpStatusCode.OK, hbResp.StatusCode);
+    }
+
+    [Fact]
+    public async Task Register_MissingOrInvalidRegistrationToken_ReturnsUnauthorized()
+    {
+        using var client = _factory.CreateClient();
+        var regReq = new RegisterNodeRequest("b2-unauth", "http://b2-unauth:8080", null, null, new AgentCard { Name = "Unauth", Description = "Unauth" });
+
+        var missingResp = await client.PostAsJsonAsync("/nodes/register", regReq);
+        Assert.Equal(HttpStatusCode.Unauthorized, missingResp.StatusCode);
+
+        client.DefaultRequestHeaders.Add("X-Registration-Token", "wrong-token");
+        var wrongResp = await client.PostAsJsonAsync("/nodes/register", regReq);
+        Assert.Equal(HttpStatusCode.Unauthorized, wrongResp.StatusCode);
     }
 }

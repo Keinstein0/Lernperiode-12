@@ -122,4 +122,35 @@ public class McpServerTests
         registry.Verify(r => r.EvictNode("b2-1"), Times.Once);
         routing.Verify(t => t.RemoveRoutesForNode("b2-1"), Times.Once);
     }
+
+    [Fact]
+    public async Task Task_SendTaskStream_StreamsEventsAndRecordsTaskId()
+    {
+        var auth = new Mock<IAuthService>();
+        var registry = new Mock<INodeRegistryService>();
+        registry.Setup(r => r.GetNode("b2-1")).Returns(MakeNode("b2-1"));
+
+        var routing = new TaskRoutingService();
+        var proxy = new Mock<IA2AProxyService>();
+        proxy.Setup(p => p.SendStreamingMessageAsync("b2-1", "http://b2-1:8080", It.IsAny<System.Text.Json.JsonElement>(), It.IsAny<CancellationToken>()))
+            .Returns(GetFakeSseLinesAsync());
+
+        var msg = System.Text.Json.JsonSerializer.SerializeToElement(new { role = "user" });
+        var lines = new List<string>();
+        await foreach (var line in TaskMcpServer.SendTaskStreamAsync(
+            auth.Object, registry.Object, routing, proxy.Object, "b2-1", msg))
+        {
+            lines.Add(line);
+        }
+
+        Assert.Equal(2, lines.Count);
+        Assert.Equal("b2-1", routing.ResolveNodeId("task-stream-1"));
+    }
+
+    private static async IAsyncEnumerable<string> GetFakeSseLinesAsync()
+    {
+        yield return "data: {\"taskId\":\"task-stream-1\",\"status\":\"WORKING\"}";
+        await Task.Yield();
+        yield return "data: {\"taskId\":\"task-stream-1\",\"status\":\"COMPLETED\"}";
+    }
 }

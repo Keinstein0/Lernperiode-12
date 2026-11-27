@@ -19,66 +19,56 @@ public sealed class A2AProxyService : IA2AProxyService
 
     public async Task<AgentCard> GetExtendedAgentCardAsync(string nodeId, string hostUrl, CancellationToken ct = default)
     {
-        using var req = CreateAuthorizedRequest(HttpMethod.Get, $"{hostUrl.TrimEnd('/')}/agent-card/extended", nodeId);
-        var resp = await _http.SendAsync(req, ct);
-        resp.EnsureSuccessStatusCode();
-        return (await resp.Content.ReadFromJsonAsync<AgentCard>(ct))!;
+        var result = await SendJsonRpcAsync(nodeId, hostUrl, "agent/authenticatedExtendedCard", new { }, ct);
+        return result.Deserialize<AgentCard>()!;
     }
 
-    public async Task<JsonElement> SendMessageAsync(string nodeId, string hostUrl, JsonElement payload, CancellationToken ct = default)
-    {
-        using var req = CreateAuthorizedRequest(HttpMethod.Post, $"{hostUrl.TrimEnd('/')}/a2a/message:send", nodeId);
-        req.Content = JsonContent.Create(payload);
-        var resp = await _http.SendAsync(req, ct);
-        resp.EnsureSuccessStatusCode();
-        return await resp.Content.ReadFromJsonAsync<JsonElement>(ct);
-    }
+    public Task<JsonElement> SendMessageAsync(string nodeId, string hostUrl, JsonElement payload, CancellationToken ct = default) =>
+        SendJsonRpcAsync(nodeId, hostUrl, "message/send", payload, ct);
 
-    public async IAsyncEnumerable<string> SendStreamingMessageAsync(
+    public IAsyncEnumerable<string> SendStreamingMessageAsync(
         string nodeId,
         string hostUrl,
         JsonElement payload,
-        [EnumeratorCancellation] CancellationToken ct = default)
-    {
-        using var req = CreateAuthorizedRequest(HttpMethod.Post, $"{hostUrl.TrimEnd('/')}/a2a/message:stream", nodeId);
-        req.Content = JsonContent.Create(payload);
-        using var resp = await _http.SendAsync(req, HttpCompletionOption.ResponseHeadersRead, ct);
-        resp.EnsureSuccessStatusCode();
+        CancellationToken ct = default) =>
+        StreamJsonRpcAsync(nodeId, hostUrl, "message/stream", payload, ct);
 
-        await using var stream = await resp.Content.ReadAsStreamAsync(ct);
-        using var reader = new StreamReader(stream);
-        while (!reader.EndOfStream && !ct.IsCancellationRequested)
-        {
-            var line = await reader.ReadLineAsync(ct);
-            if (!string.IsNullOrWhiteSpace(line))
-            {
-                yield return line;
-            }
-        }
+    public Task<JsonElement> GetTaskAsync(string nodeId, string hostUrl, string taskId, int? historyLength, CancellationToken ct = default)
+    {
+        object @params = historyLength.HasValue
+            ? new { id = taskId, historyLength = historyLength.Value }
+            : new { id = taskId };
+        return SendJsonRpcAsync(nodeId, hostUrl, "tasks/get", @params, ct);
     }
 
-    public async Task<JsonElement> GetTaskAsync(string nodeId, string hostUrl, string taskId, int? historyLength, CancellationToken ct = default)
-    {
-        var url = $"{hostUrl.TrimEnd('/')}/a2a/tasks/{Uri.EscapeDataString(taskId)}";
-        if (historyLength.HasValue)
-        {
-            url += $"?historyLength={historyLength.Value}";
-        }
-
-        using var req = CreateAuthorizedRequest(HttpMethod.Get, url, nodeId);
-        var resp = await _http.SendAsync(req, ct);
-        resp.EnsureSuccessStatusCode();
-        return await resp.Content.ReadFromJsonAsync<JsonElement>(ct);
-    }
-
-    public async IAsyncEnumerable<string> SubscribeToTaskAsync(
+    public IAsyncEnumerable<string> SubscribeToTaskAsync(
         string nodeId,
         string hostUrl,
         string taskId,
-        [EnumeratorCancellation] CancellationToken ct = default)
+        CancellationToken ct = default) =>
+        StreamJsonRpcAsync(nodeId, hostUrl, "tasks/resubscribe", new { id = taskId }, ct);
+
+    public Task<JsonElement> CancelTaskAsync(string nodeId, string hostUrl, string taskId, CancellationToken ct = default) =>
+        SendJsonRpcAsync(nodeId, hostUrl, "tasks/cancel", new { id = taskId }, ct);
+
+    private async Task<JsonElement> SendJsonRpcAsync(string nodeId, string hostUrl, string method, object @params, CancellationToken ct)
     {
-        var url = $"{hostUrl.TrimEnd('/')}/a2a/tasks/{Uri.EscapeDataString(taskId)}:subscribe";
-        using var req = CreateAuthorizedRequest(HttpMethod.Get, url, nodeId);
+        using var req = CreateJsonRpcRequest(nodeId, hostUrl, method, @params);
+        var resp = await _http.SendAsync(req, ct);
+        resp.EnsureSuccessStatusCode();
+
+        var doc = await resp.Content.ReadFromJsonAsync<JsonElement>(ct);
+        return doc.TryGetProperty("result", out var result) ? result : doc;
+    }
+
+    private async IAsyncEnumerable<string> StreamJsonRpcAsync(
+        string nodeId,
+        string hostUrl,
+        string method,
+        object @params,
+        [EnumeratorCancellation] CancellationToken ct)
+    {
+        using var req = CreateJsonRpcRequest(nodeId, hostUrl, method, @params);
         using var resp = await _http.SendAsync(req, HttpCompletionOption.ResponseHeadersRead, ct);
         resp.EnsureSuccessStatusCode();
 
@@ -94,20 +84,18 @@ public sealed class A2AProxyService : IA2AProxyService
         }
     }
 
-    public async Task<JsonElement> CancelTaskAsync(string nodeId, string hostUrl, string taskId, CancellationToken ct = default)
-    {
-        var url = $"{hostUrl.TrimEnd('/')}/a2a/tasks/{Uri.EscapeDataString(taskId)}:cancel";
-        using var req = CreateAuthorizedRequest(HttpMethod.Post, url, nodeId);
-        var resp = await _http.SendAsync(req, ct);
-        resp.EnsureSuccessStatusCode();
-        return await resp.Content.ReadFromJsonAsync<JsonElement>(ct);
-    }
-
-    private HttpRequestMessage CreateAuthorizedRequest(HttpMethod method, string url, string nodeId)
+    private HttpRequestMessage CreateJsonRpcRequest(string nodeId, string hostUrl, string method, object @params)
     {
         var (token, _) = _authService.IssueRouterNodeToken(nodeId);
-        var req = new HttpRequestMessage(method, url);
+        var req = new HttpRequestMessage(HttpMethod.Post, hostUrl.TrimEnd('/'));
         req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        req.Content = JsonContent.Create(new
+        {
+            jsonrpc = "2.0",
+            id = Guid.NewGuid().ToString("N"),
+            method,
+            @params
+        });
         return req;
     }
 }
