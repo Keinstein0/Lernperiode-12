@@ -56,7 +56,7 @@ Morgen:
 Arbeitspakete bis 27.11.2026
 Rieder:
 - [ ] Alex: Aufsetzen neuer Router als ASP.NET core web api, dependencies installieren
-- [ ] Neo, Vincent, Timo: Neue architektur vorsichtig durchlesen und nütige änderungen klar definieren
+- [x] Neo, Vincent, Timo: Neue architektur vorsichtig durchlesen und nütige änderungen klar definieren
 
 Morgen:
 - [ ] Alex: Rohimplementation MCP Client Endpunkte
