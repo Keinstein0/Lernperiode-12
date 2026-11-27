@@ -12,3 +12,5 @@ newrouter/obj
 newrouter/obj/Debug/net8.0
 newrouter/obj/Debug/net8.0/newrouter.AssemblyInfo.cs
 newrouter/obj/Debug/net8.0/newrouter.AssemblyInfoInputs.cache
+newrouter.Tests/bin/Debug
+newrouter.Tests/obj
