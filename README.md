@@ -55,15 +55,26 @@ Morgen:
 
 Arbeitspakete bis 27.11.2026
 Rieder:
-- [ ] Alex: Aufsetzen neuer Router als ASP.NET core web api, dependencies installieren
+- [X] Alex: Aufsetzen neuer Router als ASP.NET core web api, dependencies installieren
 - [x] Neo, Vincent, Timo: Neue architektur vorsichtig durchlesen und nütige änderungen klar definieren
 
 Morgen:
-- [ ] Alex: Rohimplementation MCP Client Endpunkte
-- [ ] Alex: Rohimplementation A2A Pipeline
+- [X] Alex: Rohimplementation MCP Client Endpunkte
+- [X] Alex: Rohimplementation A2A Pipeline
 - [ ] Neo: Herunterladen und testen bereits existierende A2A harnesses (https://github.com/shashikanth-gs/a2a-wrapper)
-- [ ] Neo: Projekt für auth node initialisieren
+- [X] Neo: Projekt für auth node initialisieren
 - [X] Vincent: Mock MCP server bauen
-- [ ] Vincent+Timo: Erstellen von mockups des neuen UI
-- [ ] Timo: neues UI auf usability bewerten
+- [X] Vincent+Timo: Erstellen von mockups des neuen UI
+- [X] Timo: neues UI auf usability bewerten
 
+Arbeitspakete bis 04.12.2026
+Rieder:
+- [ ] Alex+Neo: Integration Auth+Router
+- [ ] Vincent: Frontend Fertigstellen
+
+Morgen:
+- [ ] Alex: Implementieren SQLite
+- [ ] Alle: Volle integration tests
+- [ ] Neo: Auth node fertig
+- [ ] [Jemand]: Frontend mit router integrieren, Code testen
+- [ ] [Jemand]: Agent mit router integrieren und testen
