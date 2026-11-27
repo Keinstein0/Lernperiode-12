@@ -85,6 +85,13 @@ export interface Task {
   artifacts: Artifact[];
 }
 
+/** Auth Node record: identity + which target nodes this node may use. */
+export interface NodeAuth {
+  nodeId: string;
+  isAdmin: boolean;
+  allowedNodes: string[];
+}
+
 /** Router-side bookkeeping: which node a task was routed to. */
 export interface TaskRecord {
   task: Task;

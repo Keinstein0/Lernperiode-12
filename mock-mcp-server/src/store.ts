@@ -1,5 +1,12 @@
-import { seedNodes, seedTasks } from './seed.js';
-import { TERMINAL_STATES, type RegisteredNode, type Task, type TaskRecord, type TaskState } from './types.js';
+import { seedAuth, seedNodes, seedTasks } from './seed.js';
+import {
+  TERMINAL_STATES,
+  type NodeAuth,
+  type RegisteredNode,
+  type Task,
+  type TaskRecord,
+  type TaskState,
+} from './types.js';
 
 /**
  * In-memory state shared by every MCP request. Lives as long as the process;
@@ -9,6 +16,8 @@ class MockStore {
   private nodes = new Map<string, RegisteredNode>();
   /** Router routing map: taskId -> record (incl. nodeId). */
   private tasks = new Map<string, TaskRecord>();
+  /** Fake Auth Node DB: nodeId -> identity + permissions. */
+  private auth = new Map<string, NodeAuth>();
 
   constructor() {
     this.reset();
@@ -17,6 +26,26 @@ class MockStore {
   reset(): void {
     this.nodes = new Map(seedNodes().map((n) => [n.nodeId, n]));
     this.tasks = new Map(seedTasks().map((r) => [r.task.id, r]));
+    this.auth = new Map(seedAuth().map((a) => [a.nodeId, a]));
+  }
+
+  // ---- Auth (fake Auth Node) -------------------------------------------
+
+  listAuth(): NodeAuth[] {
+    return [...this.auth.values()];
+  }
+
+  getAuth(nodeId: string): NodeAuth | undefined {
+    return this.auth.get(nodeId);
+  }
+
+  /** Removes a node everywhere: registry, Auth DB, and other nodes' permission lists. */
+  deleteNode(nodeId: string): void {
+    this.nodes.delete(nodeId);
+    this.auth.delete(nodeId);
+    for (const a of this.auth.values()) {
+      a.allowedNodes = a.allowedNodes.filter((id) => id !== nodeId);
+    }
   }
 
   // ---- Nodes ----------------------------------------------------------

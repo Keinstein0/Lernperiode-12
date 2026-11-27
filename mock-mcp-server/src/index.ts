@@ -4,6 +4,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { registerDiscoveryTools } from './tools/discovery.js';
 import { registerTaskTools } from './tools/tasks.js';
+import { registerAdminTools } from './tools/admin.js';
 
 const PORT = Number(process.env.PORT ?? 3333);
 
@@ -20,6 +21,7 @@ function createServer(): McpServer {
 
   registerDiscoveryTools(server);
   registerTaskTools(server);
+  registerAdminTools(server);
 
   return server;
 }

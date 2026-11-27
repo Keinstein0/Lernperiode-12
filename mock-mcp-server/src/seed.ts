@@ -1,4 +1,14 @@
-import type { RegisteredNode, TaskRecord } from './types.js';
+import type { NodeAuth, RegisteredNode, TaskRecord } from './types.js';
+
+/** Fake Auth Node data. New nodes start with 0 permissions (see uniskv2-interactions.md). */
+export function seedAuth(): NodeAuth[] {
+  return [
+    { nodeId: 'node-claude-code-1', isAdmin: false, allowedNodes: ['node-research-1', 'node-docs-1'] },
+    { nodeId: 'node-research-1', isAdmin: false, allowedNodes: [] },
+    { nodeId: 'node-docs-1', isAdmin: false, allowedNodes: ['node-research-1'] },
+    { nodeId: 'node-roblox-1', isAdmin: false, allowedNodes: [] },
+  ];
+}
 
 /** Fake nodes so the client has something to discover right after startup. */
 export function seedNodes(): RegisteredNode[] {
